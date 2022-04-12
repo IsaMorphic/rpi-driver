@@ -24,10 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "rpi_dma_utils.h"
 
-#define USE_SMI         1
-#define USE_DMA         1
 #define DISP_ZEROS      0
 
 #define SMI_A0_PIN      5
@@ -37,7 +36,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        512
+#define NSAMPLES        2048
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -79,7 +78,7 @@ char *smi_regstrs[] = {
 #define SMI_CS_FIELDS \
     enable:1, done:1, active:1, start:1, clear:1, write:1, _x1:2,\
     teen:1, intd:1, intt:1, intr:1, pvmode:1, seterr:1, pxldat:1, edreq:1,\
-    _x2:8, _x3:1, aferr:1, txw:1, rxr:1, txd:1, rxd:1, txe:1, rxf:1  
+    _x2:8, _x3:1, aferr:1, txw:1, rxr:1, txd:1, rxd:1, txe:1, rxf:1
 REG_DEF(SMI_CS_REG, SMI_CS_FIELDS);
 #define SMI_L_FIELDS \
     len:32
@@ -150,37 +149,35 @@ void dma_wait(int chan);
 int main(int argc, char *argv[])
 {
     int i, sample_count=NSAMPLES;
-    
+
     signal(SIGINT, terminate);
     map_devices();
-    init_smi(0, 1000, 25, 50, 25);
+    init_smi(0, 100, 25, 50, 25);
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
     smi_cs->clear = 1;
     dac_ladder_init();
-    for (i=0; i<sample_count; i++)
-        sample_buff[i] = (uint8_t)i;
-#if !USE_DMA    
-    while (1)
-    {
-        i = (i + 1) % sample_count;
-        dac_ladder_write(sample_buff[i]);
-        usleep(10);
-    }
-#else
+
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
     map_uncached_mem(&vc_mem, VC_MEM_SIZE(sample_count));
-    smi_dsr->rwidth = SMI_8_BITS; 
-    smi_l->len = sample_count;
+
+    smi_dsr->rwidth = SMI_8_BITS;
     smi_dmc->dmaen = 1;
-    smi_cs->write = 1;
-    smi_cs->enable = 1;
-    smi_cs->clear = 1;
-    dac_ladder_dma(&vc_mem, sample_buff, sample_count, 0);
-    smi_cs->start = 1;
-    dma_wait(DMA_CHAN_A);
-#endif    
+		smi_cs->write = 1;
+		smi_cs->enable = 1;
+		smi_cs->clear = 1;
+
+    int readCount;
+		while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
+		{
+			  smi_l->len = readCount;
+        dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
+        smi_cs->start = 1;
+
+        dma_wait(DMA_CHAN_A);
+	  }
+
     terminate(0);
     return(0);
 }
@@ -189,28 +186,14 @@ int main(int argc, char *argv[])
 void dac_ladder_init(void)
 {
     int i;
-    
+
 #if USE_SMI
     smi_cs->clear = smi_cs->seterr = smi_cs->aferr=1;
     //smi_cs->enable = 1;
     smi_dcs->enable = 1;
-#endif    
+#endif
     for (i=0; i<DAC_NPINS; i++)
-        gpio_mode(DAC_D0_PIN+i, USE_SMI ? GPIO_ALT1 : GPIO_OUT);
-}
-
-// Output value to resistor DAC
-void dac_ladder_write(int val)
-{
-#if USE_SMI
-    smi_dcs->done = 1;
-    smi_dcs->write = 1;
-    smi_dcd->value = val & 0xff;
-    smi_dcs->start = 1;
-#else
-    *REG32(gpio_regs, GPIO_SET0) = (val & 0xff) << DAC_D0_PIN;
-    *REG32(gpio_regs, GPIO_CLR0) = (~val & 0xff) << DAC_D0_PIN;
-#endif    
+        gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
 }
 
 // DMA values to resistor DAC
@@ -218,7 +201,7 @@ void dac_ladder_dma(MEM_MAP *mp, uint8_t *data, int len, int repeat)
 {
     DMA_CB *cbs=mp->virt;
     uint8_t *txdata=(uint8_t *)(cbs+1);
-    
+
     memcpy(txdata, data, len);
     enable_dma(DMA_CHAN_A);
     cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
@@ -251,7 +234,7 @@ void fail(char *s)
 void terminate(int sig)
 {
     int i;
-    
+
     printf("Closing\n");
     disp_reg_fields(smi_cs_regstrs, "CS", *REG32(smi_regs, SMI_CS));
     for (i=0; i<DAC_NPINS; i++)
@@ -326,7 +309,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
 {
     char *p=regstrs, *q, *r=regstrs;
     uint32_t nbits, v;
-    
+
     printf("%s %08X", name, val);
     while ((q = strchr(p, ':')) != 0)
     {
@@ -347,10 +330,10 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
 // Wait until DMA is complete
 void dma_wait(int chan)
 {
-    int n = 1000;
+    int n = 20000;
 
     do {
-        usleep(100);
+        usleep(5);
     } while (dma_transfer_len(chan) && --n);
     if (n == 0)
         printf("DMA transfer timeout\n");
