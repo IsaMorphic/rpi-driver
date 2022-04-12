@@ -1,1 +1,1 @@
-Raspberry Pi source files, see https://iosoft.blog for details
+SAVE Raspberry Pi based DAC output driver. Based on source files from https://iosoft.blog
