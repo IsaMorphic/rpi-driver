@@ -36,7 +36,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        512
+#define NSAMPLES        2048
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, terminate);
     map_devices();
-    init_smi(0, 50, 6, 13, 6);
+    init_smi(0, 2, 6, 13, 6);
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
     smi_cs->clear = 1;
