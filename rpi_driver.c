@@ -38,7 +38,7 @@
 #define DAC_NPINS       8
 
 #define NSAMPLES        9540
-#define NBUFFERS        32
+#define NBUFFERS        16
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
