@@ -332,7 +332,7 @@ void dma_wait(int chan)
     int n = 1000;
 
     do {
-        usleep(63);
+        usleep(30);
     } while (dma_transfer_len(chan) && --n);
     if (n == 0)
         printf("DMA transfer timeout\n");
