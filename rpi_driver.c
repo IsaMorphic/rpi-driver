@@ -36,7 +36,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        636
+#define NSAMPLES        2554
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -332,7 +332,7 @@ void dma_wait(int chan)
     int n = 1000000;
 
     do {
-        usleep(0);
+        usleep(61);
     } while (dma_transfer_len(chan) && --n);
     if (n == 0)
         printf("DMA transfer timeout\n");
