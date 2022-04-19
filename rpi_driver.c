@@ -36,7 +36,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        4096
+#define NSAMPLES        1000
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
 
-        while(!smi_cs->done) ;
+        usleep(100);
     }
 
     terminate(0);
