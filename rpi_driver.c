@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, terminate);
     map_devices();
-    init_smi(0, 100, 25, 50, 25);
+    init_smi(0, 16, 6, 13, 6);
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
     smi_cs->clear = 1;
@@ -330,10 +330,10 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
 // Wait until DMA is complete
 void dma_wait(int chan)
 {
-    int n = 20000;
+    int n = 1000;
 
     do {
-        usleep(5);
+        usleep(100);
     } while (dma_transfer_len(chan) && --n);
     if (n == 0)
         printf("DMA transfer timeout\n");
