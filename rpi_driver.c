@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     {
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
-        usleep(2);
+        dma_wait(DMA_A);
     }
 
     terminate(0);
@@ -329,10 +329,10 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
 // Wait until DMA is complete
 void dma_wait(int chan)
 {
-    int n = 1000;
+    int n = 1000000;
 
     do {
-        usleep(100);
+        usleep(0);
     } while (dma_transfer_len(chan) && --n);
     if (n == 0)
         printf("DMA transfer timeout\n");
