@@ -329,7 +329,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
 // Wait until DMA is complete
 void dma_wait(int chan)
 {
-    int n = 1000000;
+    int n = 100;
 
     do {
         usleep(61);
