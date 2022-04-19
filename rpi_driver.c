@@ -139,7 +139,7 @@ uint8_t sample_buff[NSAMPLES * 16];
 
 void dac_ladder_init(void);
 void dac_ladder_write(int val);
-void dac_ladder_dma(MEM_MAP *mp, uint8_t *data, int len, int repeat);
+void dac_ladder_dma(MEM_MAP *mp, uint8_t *data);
 void map_devices(void);
 void fail(char *s);
 void terminate(int sig);
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(sample_count));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = sample_count;
+    smi_l->len = sample_count * 16;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     	clock_gettime(CLOCK_REALTIME, &gettime_now);
     	start_time = gettime_now.tv_nsec;		//Get nS value
 
-        dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
+        dac_ladder_dma(vc_mem, sample_buff);
         smi_cs->start = 1;
 
     	while (1)
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
     		time_difference = gettime_now.tv_nsec - start_time;
     		if (time_difference < 0)
     			time_difference += 1000000000; //(Rolls over every 1 second)
-    		if (time_difference > sample_count * 16 * 100) //Delay for # nS
+    		if (time_difference > sample_count * 16 * 100 + 5) //Delay for # nS
     			break;
     	}
     }
@@ -224,7 +224,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
     {
         MEM_MAP *mp = &mps[i];
         DMA_CB *cbs = mp->virt;
-        DMA_CB *cbs_next = i == 15 ? 0 : (&mps[i])->virt;
+        DMA_CB *cbs_next = i == 15 ? (DMA_CB*)0 : (&mps[i + 1])->virt;
         uint8_t *txdata = (uint8_t *)(cbs+1);
 
         memcpy(txdata, data + i * NSAMPLES, NSAMPLES);
@@ -235,7 +235,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
         cbs[0].next_cb = cbs_next;
     }
 
-    start_dma(mp, DMA_CHAN_A, &((&mps[0])->virt), 0);
+    start_dma(&mps[0], DMA_CHAN_A, (DMA_CB*)(&mps[0])->virt, 0);
 }
 
 // Map GPIO, DMA and SMI registers into virtual mem (user space)
