@@ -38,7 +38,7 @@
 #define DAC_NPINS       8
 
 #define NSAMPLES        9540
-#define NBUFFERS        16
+#define NBUFFERS        32
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -163,11 +163,11 @@ int main(int argc, char *argv[])
 
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
-    for(i = 0; i < 16; i++)
+    for(i = 0; i < NBUFFERS; i++)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(sample_count));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = sample_count * 16;
+    smi_l->len = sample_count * NBUFFERS;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
@@ -268,7 +268,7 @@ void terminate(int sig)
     if (smi_regs.virt)
         *REG32(smi_regs, SMI_CS) = 0;
     stop_dma(DMA_CHAN_A);
-    for(i=0; i<16; i++)
+    for(i=0; i<NBUFFERS; i++)
         unmap_periph_mem(&vc_mem[i]);
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
