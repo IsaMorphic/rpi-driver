@@ -36,7 +36,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1000
+#define NSAMPLES        635
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -167,15 +167,15 @@ int main(int argc, char *argv[])
     smi_dmc->dmaen = 1;
     smi_cs->write = 1;
     smi_cs->enable = 1;
-    smi_cs->clear = 1;
 
     int readCount;
     while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
     {
+        smi_cs->clear = 1;
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
 
-        usleep(75);
+        usleep(62);
     }
 
     terminate(0);
@@ -208,7 +208,7 @@ void dac_ladder_dma(MEM_MAP *mp, uint8_t *data, int len, int repeat)
     cbs[0].tfr_len = NSAMPLES;
     cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
     cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-    cbs[0].next_cb = repeat ? MEM_BUS_ADDR(mp, &cbs[0]) : 0;
+    cbs[0].next_cb = MEM_BUS_ADDR(mp, &cbs[1]);
     start_dma(mp, DMA_CHAN_A, &cbs[0], 0);
 }
 
