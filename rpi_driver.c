@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        6360
+#define NSAMPLES        166632
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
     		time_difference = gettime_now.tv_nsec - start_time;
     		if (time_difference < 0)
     			time_difference += 1000000000; //(Rolls over every 1 second)
-    		if (time_difference > 636 * 1000) //Delay for # nS
+    		if (time_difference > 16664 * 1000) //Delay for # nS
     			break;
     	}
     }
