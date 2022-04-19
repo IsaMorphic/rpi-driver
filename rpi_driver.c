@@ -38,6 +38,7 @@
 #define DAC_NPINS       8
 
 #define NSAMPLES        9540
+#define NBUFFERS        32
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -119,7 +120,7 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 
 extern MEM_MAP gpio_regs, dma_regs;
 MEM_MAP clk_regs, smi_regs;
-MEM_MAP vc_mem[16];
+MEM_MAP vc_mem[NBUFFERS];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -135,7 +136,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  1       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-uint8_t sample_buff[NSAMPLES * 16];
+uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
 void dac_ladder_init(void);
 void dac_ladder_write(int val);
@@ -178,7 +179,7 @@ int main(int argc, char *argv[])
     long int time_difference;
     struct timespec gettime_now;
 
-    while((readCount = read(STDIN_FILENO, sample_buff, sample_count * 16)) > 0)
+    while((readCount = read(STDIN_FILENO, sample_buff, sample_count * NBUFFERS)) > 0)
     {
     	clock_gettime(CLOCK_REALTIME, &gettime_now);
     	start_time = gettime_now.tv_nsec;		//Get nS value
@@ -192,7 +193,7 @@ int main(int argc, char *argv[])
     		time_difference = gettime_now.tv_nsec - start_time;
     		if (time_difference < 0)
     			time_difference += 1000000000; //(Rolls over every 1 second)
-    		if (time_difference > sample_count * 16 * 100 + 5) //Delay for # nS
+    		if (time_difference > sample_count * NBUFFERS * 100 + 5) //Delay for # nS
     			break;
     	}
     }
@@ -220,7 +221,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
 {
     enable_dma(DMA_CHAN_A);
 
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &mps[i];
         DMA_CB *cbs = mp->virt;
@@ -231,7 +232,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
         cbs[0].tfr_len = NSAMPLES;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == 15 ? 0 : MEM_BUS_ADDR((&mps[i + 1]), (&mps[i + 1])->virt);
+        cbs[0].next_cb = i == (NBUFFERS - 1) ? 0 : MEM_BUS_ADDR((&mps[i + 1]), (&mps[i + 1])->virt);
     }
 
     start_dma(&mps[0], DMA_CHAN_A, (DMA_CB*)(&mps[0])->virt, 0);
