@@ -223,8 +223,9 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
     for(int i = 0; i < 16; i++)
     {
         MEM_MAP *mp = &mps[i];
+        MEM_MAP *mp_next = &mps[i + 1];
         DMA_CB *cbs = mp->virt;
-        DMA_CB *cbs_next = i == 15 ? (DMA_CB*)0 : (&mps[i + 1])->virt;
+        DMA_CB *cbs_next = i == 15 ? 0 : mp_next->virt;
         uint8_t *txdata = (uint8_t *)(cbs+1);
 
         memcpy(txdata, data + i * NSAMPLES, NSAMPLES);
@@ -232,7 +233,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
         cbs[0].tfr_len = NSAMPLES;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = cbs_next;
+        cbs[0].next_cb = MEM_BUS_ADDR(mp_next, cbs_next);
     }
 
     start_dma(&mps[0], DMA_CHAN_A, (DMA_CB*)(&mps[0])->virt, 0);
