@@ -25,7 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <wiringPi.h>
+#include <pigpio.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
@@ -173,10 +173,10 @@ int main(int argc, char *argv[])
     int readCount;
     while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
     {
-        int startTime = micros();
+        uint32_t startTime = gpioTick();
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
-        do {} while(micros() - startTime < 64) ;
+        do {} while(gpioTick() - startTime < 64) ;
     }
 
     terminate(0);
