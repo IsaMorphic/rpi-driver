@@ -174,8 +174,6 @@ int main(int argc, char *argv[])
         smi_cs->clear = 1;
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
-
-        usleep(62);
     }
 
     terminate(0);
