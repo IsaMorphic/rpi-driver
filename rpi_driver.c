@@ -118,7 +118,8 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 #define CLK_SMI_DIV     0xb4
 
 extern MEM_MAP gpio_regs, dma_regs;
-MEM_MAP vc_mem, clk_regs, smi_regs;
+MEM_MAP clk_regs, smi_regs;
+MEM_MAP vc_mem[16];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -134,7 +135,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  1       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-uint8_t sample_buff[NSAMPLES];
+uint8_t sample_buff[NSAMPLES * 16];
 
 void dac_ladder_init(void);
 void dac_ladder_write(int val);
@@ -161,7 +162,8 @@ int main(int argc, char *argv[])
 
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
-    map_uncached_mem(&vc_mem, VC_MEM_SIZE(sample_count));
+    for(i = 0; i < 16; i++)
+        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(sample_count));
 
     smi_dsr->rwidth = SMI_8_BITS;
     smi_l->len = sample_count;
@@ -176,7 +178,7 @@ int main(int argc, char *argv[])
     long int time_difference;
     struct timespec gettime_now;
 
-    while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
+    while((readCount = read(STDIN_FILENO, sample_buff, sample_count * 16)) > 0)
     {
     	clock_gettime(CLOCK_REALTIME, &gettime_now);
     	start_time = gettime_now.tv_nsec;		//Get nS value
@@ -190,7 +192,7 @@ int main(int argc, char *argv[])
     		time_difference = gettime_now.tv_nsec - start_time;
     		if (time_difference < 0)
     			time_difference += 1000000000; //(Rolls over every 1 second)
-    		if (time_difference > 9540 * 100) //Delay for # nS
+    		if (time_difference > sample_count * 16 * 100) //Delay for # nS
     			break;
     	}
     }
@@ -214,19 +216,26 @@ void dac_ladder_init(void)
 }
 
 // DMA values to resistor DAC
-void dac_ladder_dma(MEM_MAP *mp, uint8_t *data, int len, int repeat)
+void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
 {
-    DMA_CB *cbs=mp->virt;
-    uint8_t *txdata=(uint8_t *)(cbs+1);
-
-    memcpy(txdata, data, len);
     enable_dma(DMA_CHAN_A);
-    cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
-    cbs[0].tfr_len = NSAMPLES;
-    cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
-    cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-    cbs[0].next_cb = 0;
-    start_dma(mp, DMA_CHAN_A, &cbs[0], 0);
+
+    for(int i = 0; i < 16; i++)
+    {
+        MEM_MAP *mp = &mps[i];
+        DMA_CB *cbs = mp->virt;
+        DMA_CB *cbs_next = i == 15 ? 0 : (&mps[i])->virt;
+        uint8_t *txdata = (uint8_t *)(cbs+1);
+
+        memcpy(txdata, data + i * NSAMPLES, NSAMPLES);
+        cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
+        cbs[0].tfr_len = NSAMPLES;
+        cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
+        cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
+        cbs[0].next_cb = cbs_next;
+    }
+
+    start_dma(mp, DMA_CHAN_A, &((&mps[0])->virt), 0);
 }
 
 // Map GPIO, DMA and SMI registers into virtual mem (user space)
@@ -259,7 +268,8 @@ void terminate(int sig)
     if (smi_regs.virt)
         *REG32(smi_regs, SMI_CS) = 0;
     stop_dma(DMA_CHAN_A);
-    unmap_periph_mem(&vc_mem);
+    for(i=0; i<16; i++)
+        unmap_periph_mem(&vc_mem[i]);
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
     unmap_periph_mem(&gpio_regs);
