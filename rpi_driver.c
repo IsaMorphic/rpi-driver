@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
     {
     	clock_gettime(CLOCK_REALTIME, &gettime_now);
-    	start_time = gettime_now.tv_usec;		//Get uS value
+    	start_time = gettime_now.tv_nsec;		//Get nS value
 
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
@@ -187,10 +187,10 @@ int main(int argc, char *argv[])
     	while (1)
     	{
     		clock_gettime(CLOCK_REALTIME, &gettime_now);
-    		time_difference = gettime_now.tu_nsec - start_time;
+    		time_difference = gettime_now.tv_nsec - start_time;
     		if (time_difference < 0)
-    			time_difference += 1000000;				//(Rolls over every 1 second)
-    		if (time_difference > 63) //Delay for # uS
+    			time_difference += 1000000000; //(Rolls over every 1 second)
+    		if (time_difference > 64 * 1000) //Delay for # nS
     			break;
     	}
     }
