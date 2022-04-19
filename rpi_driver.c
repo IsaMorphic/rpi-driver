@@ -145,7 +145,6 @@ void terminate(int sig);
 void init_smi(int width, int ns, int setup, int hold, int strobe);
 void disp_smi(void);
 void disp_reg_fields(char *regstrs, char *name, uint32_t val);
-void nano(int delay_ns);
 
 
 int main(int argc, char *argv[])
@@ -172,11 +171,28 @@ int main(int argc, char *argv[])
     smi_cs->enable = 1;
 
     int readCount;
+
+    long int start_time;
+    long int time_difference;
+    struct timespec gettime_now;
+
     while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
     {
+    	clock_gettime(CLOCK_REALTIME, &gettime_now);
+    	start_time = gettime_now.tv_usec;		//Get uS value
+
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
-        nano(NSAMPLES * 100);
+
+    	while (1)
+    	{
+    		clock_gettime(CLOCK_REALTIME, &gettime_now);
+    		time_difference = gettime_now.tu_nsec - start_time;
+    		if (time_difference < 0)
+    			time_difference += 1000000;				//(Rolls over every 1 second)
+    		if (time_difference > 63) //Delay for # uS
+    			break;
+    	}
     }
 
     terminate(0);
@@ -326,25 +342,6 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
             p = r = p + 1;
     }
     printf("\n");
-}
-
-void nano (int delay_ns)
-{
-	long int start_time;
-	long int time_difference;
-	struct timespec gettime_now;
-
-	clock_gettime(CLOCK_REALTIME, &gettime_now);
-	start_time = gettime_now.tv_nsec;		//Get nS value
-	while (1)
-	{
-		clock_gettime(CLOCK_REALTIME, &gettime_now);
-		time_difference = gettime_now.tv_nsec - start_time;
-		if (time_difference < 0)
-			time_difference += 1000000000;				//(Rolls over every 1 second)
-		if (time_difference > delay_ns)		//Delay for # nS
-			break;
-	}
 }
 
 // EOF
