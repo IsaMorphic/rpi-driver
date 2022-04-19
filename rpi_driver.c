@@ -25,7 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <pigpio.h>
+#include <time.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
@@ -173,10 +173,9 @@ int main(int argc, char *argv[])
     int readCount;
     while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
     {
-        uint32_t startTime = gpioTick();
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
-        do {} while(gpioTick() - startTime < 64) ;
+        nano(NSAMPLES * 100);
     }
 
     terminate(0);
@@ -326,6 +325,25 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
             p = r = p + 1;
     }
     printf("\n");
+}
+
+void nano (int delay_ns)
+{
+	long int start_time;
+	long int time_difference;
+	struct timespec gettime_now;
+
+	clock_gettime(CLOCK_REALTIME, &gettime_now);
+	start_time = gettime_now.tv_nsec;		//Get nS value
+	while (1)
+	{
+		clock_gettime(CLOCK_REALTIME, &gettime_now);
+		time_difference = gettime_now.tv_nsec - start_time;
+		if (time_difference < 0)
+			time_difference += 1000000000;				//(Rolls over every 1 second)
+		if (time_difference > delay_ns)		//Delay for # nS
+			break;
+	}
 }
 
 // EOF
