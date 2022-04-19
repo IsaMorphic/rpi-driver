@@ -25,6 +25,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <wiringPi.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
@@ -36,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1272
+#define NSAMPLES        636
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -172,9 +173,10 @@ int main(int argc, char *argv[])
     int readCount;
     while((readCount = read(STDIN_FILENO, sample_buff, sample_count)) > 0)
     {
+        int startTime = micros();
         dac_ladder_dma(&vc_mem, sample_buff, readCount, 0);
         smi_cs->start = 1;
-        dma_wait(DMA_CHAN_A);
+        do {} while(micros() - startTime < 64) ;
     }
 
     terminate(0);
@@ -324,18 +326,6 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val)
             p = r = p + 1;
     }
     printf("\n");
-}
-
-// Wait until DMA is complete
-void dma_wait(int chan)
-{
-    int n = 1000;
-
-    do {
-        usleep(30);
-    } while (dma_transfer_len(chan) && --n);
-    if (n == 0)
-        printf("DMA transfer timeout\n");
 }
 
 // EOF
