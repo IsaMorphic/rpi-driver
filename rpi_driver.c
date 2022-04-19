@@ -145,7 +145,7 @@ void terminate(int sig);
 void init_smi(int width, int ns, int setup, int hold, int strobe);
 void disp_smi(void);
 void disp_reg_fields(char *regstrs, char *name, uint32_t val);
-void nano(int delay_ns)
+void nano(int delay_ns);
 
 
 int main(int argc, char *argv[])
