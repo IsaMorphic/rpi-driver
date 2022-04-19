@@ -208,7 +208,7 @@ void dac_ladder_dma(MEM_MAP *mp, uint8_t *data, int len, int repeat)
     cbs[0].tfr_len = NSAMPLES;
     cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
     cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-    cbs[0].next_cb = MEM_BUS_ADDR(mp, &cbs[1]);
+    cbs[0].next_cb = 0;
     start_dma(mp, DMA_CHAN_A, &cbs[0], 0);
 }
 
