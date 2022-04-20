@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
         start_time = gettime_now.tv_nsec;
 
         int readCount = 0;
-        while((readCount += read(STDIN_FILENO, sample_buff + readCount, sample_count * NBUFFERS)) < sample_count * NBUFFERS) ;
+        while((readCount += read(STDIN_FILENO, sample_buff + readCount, sample_count * NBUFFERS - readCount)) < sample_count * NBUFFERS) ;
 
         dac_ladder_dma(vc_mem, sample_buff);
         smi_cs->start = 1;
