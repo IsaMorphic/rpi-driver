@@ -186,16 +186,6 @@ int main(int argc, char *argv[])
 
         dac_ladder_dma(vc_mem, sample_buff);
         smi_cs->start = 1;
-
-    	while (1)
-    	{
-    		clock_gettime(CLOCK_REALTIME, &gettime_now);
-    		time_difference = gettime_now.tv_nsec - start_time;
-    		if (time_difference < 0)
-    			time_difference += 1000000000; //(Rolls over every 1 second)
-    		if (time_difference > sample_count * NBUFFERS * 100 + 5) //Delay for # nS
-    			break;
-    	}
     }
 
     terminate(0);
