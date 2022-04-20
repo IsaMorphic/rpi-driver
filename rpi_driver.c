@@ -138,9 +138,9 @@ volatile SMI_DCD_REG *smi_dcd;
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
-void dac_ladder_init(void);
-void dac_ladder_write(int val);
-void dac_ladder_dma(MEM_MAP *mp, uint8_t *data);
+void dac_init(void);
+void dac_start(void);
+
 void map_devices(void);
 void fail(char *s);
 void terminate(int sig);
@@ -151,19 +151,22 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int i, sample_count=NSAMPLES;
+    int i;
 
     signal(SIGINT, terminate);
+
     map_devices();
     init_smi(0, 100, 25, 50, 25);
+
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
+
     smi_cs->clear = 1;
-    dac_ladder_init();
+    dac_init();
 
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
-    for(i = 0; i < NBUFFERS; i++)
+    for (i=0; i<NBUFFERS; i++)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(sample_count));
 
     smi_dsr->rwidth = SMI_8_BITS;
@@ -183,10 +186,7 @@ int main(int argc, char *argv[])
         start_time = gettime_now.tv_nsec;
 
         int readCount = 0;
-        while((readCount += read(STDIN_FILENO, sample_buff + readCount, sample_count * NBUFFERS - readCount)) < sample_count * NBUFFERS) ;
-
-        dac_ladder_dma(vc_mem, sample_buff);
-        smi_cs->start = 1;
+        while((readCount += read(STDIN_FILENO, sample_buff + readCount, NSAMPLES * NBUFFERS - readCount)) < NSAMPLES * NBUFFERS) ;
 
         while (1)
         {
@@ -197,46 +197,53 @@ int main(int argc, char *argv[])
             if (time_difference % 33366 == 0)
                 break;
         }
+
+        dac_start(vc_mem, sample_buff);
     }
 
     terminate(0);
     return(0);
 }
 
-// Initialise resistor DAC
-void dac_ladder_init(void)
+void dac_init(void)
 {
     int i;
 
-#if USE_SMI
     smi_cs->clear = smi_cs->seterr = smi_cs->aferr=1;
-    //smi_cs->enable = 1;
     smi_dcs->enable = 1;
-#endif
+
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
-}
 
-// DMA values to resistor DAC
-void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
-{
     enable_dma(DMA_CHAN_A);
-
     for(int i = 0; i < NBUFFERS; i++)
     {
-        MEM_MAP *mp = &mps[i];
+        MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
         uint8_t *txdata = (uint8_t *)(cbs+1);
 
-        memcpy(txdata, data + i * NSAMPLES, NSAMPLES);
         cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
         cbs[0].tfr_len = NSAMPLES;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == (NBUFFERS - 1) ? MEM_BUS_ADDR((&mps[0]), (&mps[0])->virt) : MEM_BUS_ADDR((&mps[i + 1]), (&mps[i + 1])->virt);
+        cbs[0].next_cb = i == (NBUFFERS - 1) ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
+    }
+}
+
+void dac_start(void)
+{
+    stop_dma(DMA_CHAN_A);
+    for(int i = 0; i < NBUFFERS; i++)
+    {
+        MEM_MAP *mp = &vc_mem[i];
+        DMA_CB *cbs = mp->virt;
+        uint8_t *txdata = (uint8_t *)(cbs+1);
+
+        memcpy(txdata, sample_buff + i * NSAMPLES, NSAMPLES);
     }
 
     start_dma(&mps[0], DMA_CHAN_A, (DMA_CB*)(&mps[0])->virt, 0);
+    smi_cs->start = 1;
 }
 
 // Map GPIO, DMA and SMI registers into virtual mem (user space)
