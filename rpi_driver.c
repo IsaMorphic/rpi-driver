@@ -37,8 +37,8 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        636
-#define NBUFFERS        262
+#define NSAMPLES        1272
+#define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -232,7 +232,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
         cbs[0].tfr_len = NSAMPLES;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == (NBUFFERS - 1) ? 0 : MEM_BUS_ADDR((&mps[i + 1]), (&mps[i + 1])->virt);
+        cbs[0].next_cb = i == (NBUFFERS - 1) ? MEM_BUS_ADDR((&mps[0]), (&mps[0])->virt) : MEM_BUS_ADDR((&mps[i + 1]), (&mps[i + 1])->virt);
     }
 
     start_dma(&mps[0], DMA_CHAN_A, (DMA_CB*)(&mps[0])->virt, 0);
