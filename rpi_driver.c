@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1272
+#define NSAMPLES        636
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(sample_count));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = sample_count * NBUFFERS * 60;
+    smi_l->len = sample_count * NBUFFERS * 30;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
@@ -175,11 +175,28 @@ int main(int argc, char *argv[])
 
     while(1)
     {
+        long int start_time;
+        long int time_difference;
+        struct timespec gettime_now;
+
+        clock_gettime(CLOCK_REALTIME, &gettime_now);
+        start_time = gettime_now.tv_nsec;
+
         int readCount = 0;
         while((readCount += read(STDIN_FILENO, sample_buff + readCount, sample_count * NBUFFERS)) < sample_count * NBUFFERS) ;
 
         dac_ladder_dma(vc_mem, sample_buff);
         smi_cs->start = 1;
+
+        while (1)
+        {
+            clock_gettime(CLOCK_REALTIME, &gettime_now);
+            time_difference = gettime_now.tv_nsec - start_time;
+            if (time_difference < 0)
+                time_difference += 1000000000;
+            if (time_difference % 33366 == 0)
+                break;
+        }
     }
 
     terminate(0);
