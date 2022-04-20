@@ -162,20 +162,8 @@ int main(int argc, char *argv[])
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
 
     smi_cs->clear = 1;
+
     dac_init();
-
-    for (i=0; i<DAC_NPINS; i++)
-        gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
-    for (i=0; i<NBUFFERS; i++)
-        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
-
-    smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * 30;
-    smi_dmc->dmaen = 1;
-    smi_cs->clear = 1;
-    smi_cs->write = 1;
-    smi_cs->enable = 1;
-
     while(1)
     {
         long int start_time;
@@ -197,7 +185,6 @@ int main(int argc, char *argv[])
             if (time_difference % 33366 == 0)
                 break;
         }
-
         dac_start();
     }
 
@@ -214,6 +201,16 @@ void dac_init(void)
 
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
+
+    for (i=0; i<NBUFFERS; i++)
+        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
+
+    smi_dsr->rwidth = SMI_8_BITS;
+    smi_l->len = NSAMPLES * NBUFFERS * 30;
+    smi_dmc->dmaen = 1;
+    smi_cs->clear = 1;
+    smi_cs->write = 1;
+    smi_cs->enable = 1;
 
     enable_dma(DMA_CHAN_A);
     for(int i = 0; i < NBUFFERS; i++)
