@@ -176,13 +176,16 @@ int main(int argc, char *argv[])
         int readCount = 0;
         while((readCount += read(STDIN_FILENO, sample_buff + readCount, NSAMPLES * NBUFFERS - readCount)) < NSAMPLES * NBUFFERS) ;
 
+        clock_gettime(CLOCK_REALTIME, &gettime_now);
+        time_difference = gettime_now.tv_nsec - start_time;
+        if (time_difference < 0)
+            time_difference += 1000000000;
+
+        int frameTick = (time_difference / 33390000 + 1) * 33390000 % 1000000000;
         while (1)
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
-            time_difference = gettime_now.tv_nsec - start_time;
-            if (time_difference < 0)
-                time_difference += 1000000000;
-            if (time_difference > 33390000)
+            if (gettime_now.tv_nsec > frameTick)
                 break;
         }
         dac_start();
