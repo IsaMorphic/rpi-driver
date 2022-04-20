@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
     smi_cs->write = 1;
     smi_cs->enable = 1;
 
-    while(true)
+    while(1)
     {
         int readCount = 0;
         while((readCount += read(STDIN_FILENO, sample_buff + readCount, sample_count * NBUFFERS)) < sample_count * NBUFFERS) ;
