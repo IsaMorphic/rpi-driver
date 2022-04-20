@@ -174,16 +174,8 @@ int main(int argc, char *argv[])
     smi_cs->enable = 1;
 
     int readCount;
-
-    long int start_time;
-    long int time_difference;
-    struct timespec gettime_now;
-
     while((readCount = read(STDIN_FILENO, sample_buff, sample_count * NBUFFERS)) > 0)
     {
-    	clock_gettime(CLOCK_REALTIME, &gettime_now);
-    	start_time = gettime_now.tv_nsec;		//Get nS value
-
         dac_ladder_dma(vc_mem, sample_buff);
         smi_cs->start = 1;
     }
@@ -219,7 +211,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
 
         memcpy(txdata, data + i * NSAMPLES, NSAMPLES);
         cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
-        cbs[0].tfr_len = NSAMPLES;
+        cbs[0].tfr_len = NSAMPLES * (i == (NBUFFERS - 1) ? 4 : 1);
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
         cbs[0].next_cb = i == (NBUFFERS - 1) ? MEM_BUS_ADDR((&mps[0]), (&mps[0])->virt) : MEM_BUS_ADDR((&mps[i + 1]), (&mps[i + 1])->virt);
