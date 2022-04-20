@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = sample_count * NBUFFERS * 30;
+    smi_l->len = NSAMPLES * NBUFFERS * 30;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
