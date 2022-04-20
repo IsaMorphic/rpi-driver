@@ -167,18 +167,18 @@ int main(int argc, char *argv[])
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(sample_count));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = sample_count * NBUFFERS * 30;
+    smi_l->len = sample_count * NBUFFERS * 60;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
     smi_cs->enable = 1;
 
-    int readCount;
-    while((readCount = read(STDIN_FILENO, sample_buff, sample_count * NBUFFERS)) > 0)
-    {
+    int readCount = read(STDIN_FILENO, sample_buff, sample_count * NBUFFERS);
+    //while((readCount ) > 0)
+    //{
         dac_ladder_dma(vc_mem, sample_buff);
         smi_cs->start = 1;
-    }
+    //}
 
     terminate(0);
     return(0);
