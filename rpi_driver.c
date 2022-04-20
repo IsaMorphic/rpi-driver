@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        dac_start(vc_mem, sample_buff);
+        dac_start();
     }
 
     terminate(0);
@@ -242,7 +242,7 @@ void dac_start(void)
         memcpy(txdata, sample_buff + i * NSAMPLES, NSAMPLES);
     }
 
-    start_dma(&mps[0], DMA_CHAN_A, (DMA_CB*)(&mps[0])->virt, 0);
+    start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
 }
 
