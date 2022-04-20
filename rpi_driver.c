@@ -211,7 +211,7 @@ void dac_ladder_dma(MEM_MAP *mps, uint8_t *data)
 
         memcpy(txdata, data + i * NSAMPLES, NSAMPLES);
         cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
-        cbs[0].tfr_len = NSAMPLES * (i == (NBUFFERS - 1) ? 4 : 1);
+        cbs[0].tfr_len = NSAMPLES;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
         cbs[0].next_cb = i == (NBUFFERS - 1) ? MEM_BUS_ADDR((&mps[0]), (&mps[0])->virt) : MEM_BUS_ADDR((&mps[i + 1]), (&mps[i + 1])->virt);
