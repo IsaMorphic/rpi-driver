@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
             time_difference = gettime_now.tv_nsec - start_time;
             if (time_difference < 0)
                 time_difference += 1000000000;
-            if (time_difference % 33366 == 0)
+            if (time_difference % 33390000 == 0)
                 break;
         }
         dac_start();
