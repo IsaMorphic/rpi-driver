@@ -173,8 +173,8 @@ int main(int argc, char *argv[])
     smi_cs->write = 1;
     smi_cs->enable = 1;
 
-    int readCount;
-    while(readCount = read(STDIN_FILENO, sample_buff, sample_count * NBUFFERS) < sample_count * NBUFFERS) ;
+    int readCount = 0;
+    while((readCount += read(STDIN_FILENO, sample_buff, sample_count * NBUFFERS) < sample_count * NBUFFERS) ;
 
     //{
         dac_ladder_dma(vc_mem, sample_buff);
