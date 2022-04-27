@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
         start_time = gettime_now.tv_nsec;
 
         int readCount = 0;
-        while((readCount += read(STDIN_FILENO, sample_buff + readCount, NSAMPLES * NBUFFERS - readCount)) < NSAMPLES * NBUFFERS) ;
+        while((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) > 0) ;
 
         dac_start();
         while (1)
