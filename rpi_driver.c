@@ -164,16 +164,17 @@ int main(int argc, char *argv[])
     smi_cs->clear = 1;
 
     dac_init();
-    while(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS))
+    while(1)
     {
         long int start_time;
         long int time_difference;
         struct timespec gettime_now;
 
-        dac_start();
-
         clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
+
+        if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
+
         do
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
@@ -182,9 +183,11 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * 100)
+            if(time_difference % (NSAMPLES * NBUFFERS * 100) < 5000)
                 break;
         } while(1);
+
+        dac_start();
     }
 
     terminate(0);
