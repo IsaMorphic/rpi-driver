@@ -170,6 +170,8 @@ int main(int argc, char *argv[])
         long int time_difference;
         struct timespec gettime_now;
 
+        dac_start();
+
         clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
 
@@ -183,11 +185,9 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference % (NSAMPLES * NBUFFERS * 100) < 5000)
+            if(time_difference > NSAMPLES * NBUFFERS * 100)
                 break;
         } while(1);
-
-        dac_start();
     }
 
     terminate(0);
