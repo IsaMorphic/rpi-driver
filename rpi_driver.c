@@ -139,7 +139,7 @@ volatile SMI_DCD_REG *smi_dcd;
 uint32_t sample_buff[NSAMPLES / 4 * NBUFFERS];
 
 void dac_init(void);
-void dac_start(struct timespec& gettime_now);
+void dac_start(struct timespec *gettime_now);
 
 void map_devices(void);
 void fail(char *s);
@@ -228,7 +228,7 @@ void dac_init(void)
     }
 }
 
-void dac_start(struct timespec& gettime_now)
+void dac_start(struct timespec *gettime_now)
 {
     stop_dma(DMA_CHAN_A);
     for(int i = 0; i < NBUFFERS; i++)
