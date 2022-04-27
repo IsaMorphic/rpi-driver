@@ -174,7 +174,8 @@ int main(int argc, char *argv[])
         start_time = gettime_now.tv_nsec;
 
         int readCount = 0;
-        if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) == 0) break;
+        if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS / 2)) == 0) break;
+        lseek(STDIN_FILENO, NSAMPLES * NBUFFERS, SEEK_CUR);
 
         dac_start();
         do
