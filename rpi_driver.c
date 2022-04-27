@@ -40,6 +40,8 @@
 #define NSAMPLES        636
 #define NBUFFERS        525
 
+#define NSKIP           2;
+
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
 #define SMI_L       0x04    // Transfer length
@@ -167,14 +169,18 @@ int main(int argc, char *argv[])
     while(1)
     {
         long int start_time;
+        long int start_slack;
         long int time_difference;
         struct timespec gettime_now;
 
-        dac_start(&gettime_now);
+        clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
 
+        dac_start(&gettime_now);
+        start_slack = gettime_now.tv_nsec - start_time;
+
         if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
-        lseek(STDIN_FILENO, NSAMPLES * NBUFFERS * 2, SEEK_CUR);
+        lseek(STDIN_FILENO, NSAMPLES * NBUFFERS * NSKIP, SEEK_CUR);
 
         do
         {
@@ -184,7 +190,7 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * 300)
+            if(time_difference > NSAMPLES * NBUFFERS * (NSKIP + 1) * 100 - start_slack)
                 break;
         } while(1);
     }
