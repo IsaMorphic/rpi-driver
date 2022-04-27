@@ -188,12 +188,12 @@ int main(int argc, char *argv[])
         do
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
-            time_difference = gettime_now.tv_nsec - dac_time;
+            time_difference = gettime_now.tv_nsec - dac_time + time_slack;
 
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * (NSKIP + 1) * 100 - time_slack)
+            if(time_difference > NSAMPLES * NBUFFERS * (NSKIP + 1) * 100)
                 break;
         } while(1);
     }
