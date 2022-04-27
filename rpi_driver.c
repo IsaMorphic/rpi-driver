@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        318
+#define NSAMPLES        636
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -121,7 +121,7 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 extern MEM_MAP gpio_regs, dma_regs;
 MEM_MAP clk_regs, smi_regs;
 
-MEM_MAP vc_mem[NBUFFERS * 2];
+MEM_MAP vc_mem[NBUFFERS];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -137,7 +137,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  1       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-uint16_t sample_buff[NSAMPLES / 2 * NBUFFERS];
+uint32_t sample_buff[NSAMPLES / 4 * NBUFFERS];
 uint8_t buff_flag = 0;
 
 void dac_init(void);
@@ -212,7 +212,7 @@ void dac_init(void)
     for(i = 0; i < DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN + i, GPIO_ALT1);
 
-    for(i = 0; i < NBUFFERS * 2; i++)
+    for(i = 0; i < NBUFFERS; i++)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES * 3));
 
     smi_dsr->rwidth = SMI_8_BITS;
@@ -223,7 +223,7 @@ void dac_init(void)
     smi_cs->enable = 1;
 
     enable_dma(DMA_CHAN_A);
-    for(int i = 0; i < NBUFFERS * 2; i++)
+    for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
@@ -233,31 +233,28 @@ void dac_init(void)
         cbs[0].tfr_len = NSAMPLES * 3;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = ((i % NBUFFERS - NBUFFERS) == -1) ? 0 : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
+        cbs[0].next_cb = i == NBUFFERS - 1 ? 0 : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
 }
 
 void dac_start(struct timespec *gettime_now)
 {
-    int start_idx = buff_flag ? NBUFFERS : 0;
     for(int i = 0; i < NBUFFERS; i++)
     {
-        MEM_MAP *mp = &vc_mem[i + start_idx];
+        MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
-        uint16_t *txdata = (uint16_t *)(cbs+1);
+        uint32_t *txdata = (uint32_t *)(cbs+1);
 
-        for(int j = 0; j < NSAMPLES / 2 * 3; j++)
+        for(int j = 0; j < NSAMPLES / 4 * 3; j++)
         {
-            txdata[j] = sample_buff[i * NSAMPLES / 2 + j / 3];
+            txdata[j] = sample_buff[i * NSAMPLES / 4 + j / 3];
         }
     }
 
     clock_gettime(CLOCK_REALTIME, gettime_now);
 
-    start_dma(&vc_mem[start_idx], DMA_CHAN_A, (DMA_CB*)(&vc_mem[start_idx])->virt, 0);
+    start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
-
-    buff_flag = !buff_flag;
 }
 
 // Map GPIO, DMA and SMI registers into virtual mem (user space)
