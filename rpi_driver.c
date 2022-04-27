@@ -176,8 +176,8 @@ int main(int argc, char *argv[])
         start_time = gettime_now.tv_nsec;
 
         if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
-        lseek(STDIN_FILENO, NSAMPLES * NBUFFERS, SEEK_CUR);
-        
+        lseek(STDIN_FILENO, NSAMPLES * NBUFFERS * 2, SEEK_CUR);
+
         do
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * 200)
+            if(time_difference > NSAMPLES * NBUFFERS * 300)
                 break;
         } while(1);
     }
