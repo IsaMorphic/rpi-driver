@@ -175,6 +175,7 @@ int main(int argc, char *argv[])
 
         int readCount = 0;
         if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) == 0) break;
+        lseek(STDIN_FILENO, NSAMPLES * NBUFFERS, SEEK_CUR);
 
         do
         {
@@ -184,7 +185,7 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference % (NSAMPLES * NBUFFERS * 150) < 5000)
+            if(time_difference % (NSAMPLES * NBUFFERS * 2 * 100) < 5000)
                 break;
 
         } while(1);
