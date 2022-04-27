@@ -180,8 +180,9 @@ int main(int argc, char *argv[])
         dac_start(&gettime_now);
         dac_time = gettime_now.tv_nsec;
 
-        time_slack = dac_time - start_time;
-        if(time_slack < 0) time_slack += 1000000000;
+        long int tmp = dac_time - start_time;
+        if(tmp < 0) tmp += 1000000000;
+        time_slack = (time_slack + tmp) >> 1;
 
         if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
 
