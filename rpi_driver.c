@@ -170,13 +170,13 @@ int main(int argc, char *argv[])
         long int time_difference;
         struct timespec gettime_now;
 
-        clock_gettime(CLOCK_REALTIME, &gettime_now);
-        start_time = gettime_now.tv_nsec;
-
         int readCount = 0;
         if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) == 0) break;
 
         dac_start();
+
+        clock_gettime(CLOCK_REALTIME, &gettime_now);
+        start_time = gettime_now.tv_nsec;
         while (1)
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
