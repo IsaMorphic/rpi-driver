@@ -164,6 +164,8 @@ int main(int argc, char *argv[])
     smi_cs->clear = 1;
 
     dac_init();
+
+    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK) 
     while(1)
     {
         long int start_time;
