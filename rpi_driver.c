@@ -182,7 +182,6 @@ int main(int argc, char *argv[])
 
         time_slack = dac_time - start_time;
         if(time_slack < 0) time_slack += 1000000000;
-        time_slack <<= 1;
 
         if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
 
