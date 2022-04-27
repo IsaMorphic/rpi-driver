@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 
         clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
+
         while (1)
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
@@ -185,7 +186,7 @@ int main(int argc, char *argv[])
             if (time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > (NSAMPLES * NBUFFERS * 100 + 5000))
+            if(time_difference > (NSAMPLES * NBUFFERS * 1000))
                 break;
         }
     }
