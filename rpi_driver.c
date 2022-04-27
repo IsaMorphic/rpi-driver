@@ -176,6 +176,7 @@ int main(int argc, char *argv[])
         int readCount = 0;
         while((readCount += read(STDIN_FILENO, sample_buff + readCount, NSAMPLES * NBUFFERS - readCount)) < NSAMPLES * NBUFFERS) ;
 
+        dac_start();
         while (1)
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
@@ -184,11 +185,9 @@ int main(int argc, char *argv[])
             if (time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference % (NSAMPLES * NBUFFERS * 100 / 3) < 8000)
+            if(time_difference % (636 * 525 * 100) < 5000)
                 break;
         }
-
-        dac_start();
     }
 
     terminate(0);
