@@ -169,7 +169,8 @@ int main(int argc, char *argv[])
     while(1)
     {
         long int start_time;
-        long int start_slack;
+        long int dac_time;
+        long int time_slack;
         long int time_difference;
         struct timespec gettime_now;
 
@@ -177,7 +178,9 @@ int main(int argc, char *argv[])
         start_time = gettime_now.tv_nsec;
 
         dac_start(&gettime_now);
-        start_slack = gettime_now.tv_nsec - start_time;
+        dac_time = gettime_now.tv_nsec;
+
+        time_slack = dac_time - start_time;
 
         if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
         lseek(STDIN_FILENO, NSAMPLES * NBUFFERS * NSKIP, SEEK_CUR);
@@ -185,12 +188,12 @@ int main(int argc, char *argv[])
         do
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
-            time_difference = gettime_now.tv_nsec - start_time;
+            time_difference = gettime_now.tv_nsec - dac_time;
 
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * (NSKIP + 1) * 100 - start_slack)
+            if(time_difference > NSAMPLES * NBUFFERS * (NSKIP + 1) * 100 - time_slack)
                 break;
         } while(1);
     }
