@@ -38,7 +38,7 @@
 #define DAC_NPINS       8
 
 #define NSAMPLES        636
-#define NBUFFERS        525
+#define NBUFFERS        262
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -121,7 +121,7 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 extern MEM_MAP gpio_regs, dma_regs;
 MEM_MAP clk_regs, smi_regs;
 
-MEM_MAP vc_mem[NBUFFERS];
+MEM_MAP vc_mem[NBUFFERS * 2];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -212,7 +212,7 @@ void dac_init(void)
     for(i = 0; i < DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN + i, GPIO_ALT1);
 
-    for(i = 0; i < NBUFFERS; i++)
+    for(i = 0; i < NBUFFERS * 2; i++)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES * 3));
 
     smi_dsr->rwidth = SMI_8_BITS;
@@ -223,7 +223,7 @@ void dac_init(void)
     smi_cs->enable = 1;
 
     enable_dma(DMA_CHAN_A);
-    for(int i = 0; i < NBUFFERS; i++)
+    for(int i = 0; i < NBUFFERS * 2; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
@@ -233,15 +233,16 @@ void dac_init(void)
         cbs[0].tfr_len = NSAMPLES * 3;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == NBUFFERS - 1 ? 0 : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
+        cbs[0].next_cb = ((i % NBUFFERS - NBUFFERS) == -1) ? 0 : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
 }
 
 void dac_start(struct timespec *gettime_now)
 {
+    int start_idx = buff_flag ? NBUFFERS : 0;
     for(int i = 0; i < NBUFFERS; i++)
     {
-        MEM_MAP *mp = &vc_mem[i];
+        MEM_MAP *mp = &vc_mem[i + start_idx];
         DMA_CB *cbs = mp->virt;
         uint32_t *txdata = (uint32_t *)(cbs+1);
 
@@ -253,8 +254,10 @@ void dac_start(struct timespec *gettime_now)
 
     clock_gettime(CLOCK_REALTIME, gettime_now);
 
-    start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
+    start_dma(&vc_mem[start_idx], DMA_CHAN_A, (DMA_CB*)(&vc_mem[start_idx])->virt, 0);
     smi_cs->start = 1;
+
+    buff_flag = !buff_flag;
 }
 
 // Map GPIO, DMA and SMI registers into virtual mem (user space)
