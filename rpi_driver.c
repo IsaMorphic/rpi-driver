@@ -176,7 +176,6 @@ int main(int argc, char *argv[])
         int readCount = 0;
         if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) == 0) break;
 
-        dac_start();
         do
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
@@ -189,6 +188,8 @@ int main(int argc, char *argv[])
                 break;
 
         } while (1);
+        
+        dac_start();
     }
 
     terminate(0);
