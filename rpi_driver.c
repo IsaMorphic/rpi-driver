@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1272
+#define NSAMPLES        636
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
         start_time = gettime_now.tv_nsec;
 
         int readCount = 0;
-        if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS / 2)) == 0) break;
+        if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) == 0) break;
         lseek(STDIN_FILENO, NSAMPLES * NBUFFERS, SEEK_CUR);
 
         dac_start();
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * 100)
+            if(time_difference > NSAMPLES * NBUFFERS * 2 * 100)
                 break;
 
         } while(1);
