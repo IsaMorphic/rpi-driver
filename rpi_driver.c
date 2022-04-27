@@ -166,8 +166,6 @@ int main(int argc, char *argv[])
     dac_init();
     while(1)
     {
-        uint8_t flag = 1;
-
         long int start_time;
         long int time_difference;
         struct timespec gettime_now;
@@ -177,20 +175,6 @@ int main(int argc, char *argv[])
 
         int readCount = 0;
         while((readCount += read(STDIN_FILENO, sample_buff + readCount, NSAMPLES * NBUFFERS - readCount)) < NSAMPLES * NBUFFERS) ;
-
-        clock_gettime(CLOCK_REALTIME, &gettime_now);
-        time_difference = gettime_now.tv_nsec - start_time;
-
-        if (time_difference < 0)
-            time_difference += 1000000000;
-
-        if(time_difference < NSAMPLES * NBUFFERS * 100 / 3)
-        {
-            clock_gettime(CLOCK_REALTIME, &gettime_now);
-            start_time = gettime_now.tv_nsec;
-            dac_start();
-            flag = 0;
-        }
 
         while (1)
         {
@@ -204,10 +188,7 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        if(flag)
-        {
-            dac_start();
-        }
+        dac_start();
     }
 
     terminate(0);
