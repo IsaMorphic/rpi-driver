@@ -186,6 +186,8 @@ int main(int argc, char *argv[])
 
         if(time_difference < NSAMPLES * NBUFFERS * 100 / 3)
         {
+            clock_gettime(CLOCK_REALTIME, &gettime_now);
+            start_time = gettime_now.tv_nsec;
             dac_start();
             flag = 0;
         }
