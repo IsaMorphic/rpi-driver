@@ -139,7 +139,7 @@ volatile SMI_DCD_REG *smi_dcd;
 uint32_t sample_buff[NSAMPLES / 4 * NBUFFERS];
 
 void dac_init(void);
-void dac_start(void);
+void dac_start(struct timespec& gettime_now);
 
 void map_devices(void);
 void fail(char *s);
@@ -170,9 +170,7 @@ int main(int argc, char *argv[])
         long int time_difference;
         struct timespec gettime_now;
 
-        dac_start();
-
-        clock_gettime(CLOCK_REALTIME, &gettime_now);
+        dac_start(&gettime_now);
         start_time = gettime_now.tv_nsec;
 
         if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
@@ -230,7 +228,7 @@ void dac_init(void)
     }
 }
 
-void dac_start(void)
+void dac_start(struct timespec& gettime_now)
 {
     stop_dma(DMA_CHAN_A);
     for(int i = 0; i < NBUFFERS; i++)
@@ -244,6 +242,8 @@ void dac_start(void)
             txdata[j] = sample_buff[i * NSAMPLES / 4 + j / 3];
         }
     }
+
+    clock_gettime(CLOCK_REALTIME, gettime_now);
 
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
