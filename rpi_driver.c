@@ -181,13 +181,12 @@ int main(int argc, char *argv[])
             clock_gettime(CLOCK_REALTIME, &gettime_now);
             time_difference = gettime_now.tv_nsec - start_time;
 
-            if (time_difference < 0)
+            if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference % (NSAMPLES * NBUFFERS * 300) < 5000)
+            if(time_difference % (NSAMPLES * NBUFFERS * 100 + 5000) < 5000)
                 break;
-
-        } while (1);
+        } while(1);
 
         dac_start();
     }
