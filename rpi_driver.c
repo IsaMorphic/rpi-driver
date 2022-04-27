@@ -40,7 +40,7 @@
 #define NSAMPLES        636
 #define NBUFFERS        525
 
-#define NSKIP           2
+#define NSKIP           1
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
         dac_start(&gettime_now);
         dac_time = gettime_now.tv_nsec;
 
-        time_slack = dac_time - start_time;
+        time_slack = (dac_time - start_time) * 2;
 
         if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
         lseek(STDIN_FILENO, NSAMPLES * NBUFFERS * NSKIP, SEEK_CUR);
