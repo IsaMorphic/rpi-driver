@@ -137,7 +137,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  1       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-uint32_t sample_buff[NSAMPLES / 4 * NBUFFERS];
+uint16_t sample_buff[NSAMPLES / 2 * NBUFFERS];
 uint8_t buff_flag = 0;
 
 void dac_init(void);
@@ -244,11 +244,11 @@ void dac_start(struct timespec *gettime_now)
     {
         MEM_MAP *mp = &vc_mem[i + start_idx];
         DMA_CB *cbs = mp->virt;
-        uint32_t *txdata = (uint32_t *)(cbs+1);
+        uint16_t *txdata = (uint16_t *)(cbs+1);
 
-        for(int j = 0; j < NSAMPLES / 4 * 3; j++)
+        for(int j = 0; j < NSAMPLES / 2 * 3; j++)
         {
-            txdata[j] = sample_buff[i * NSAMPLES / 4 + j / 3];
+            txdata[j] = sample_buff[i * NSAMPLES / 2 + j / 3];
         }
     }
 
