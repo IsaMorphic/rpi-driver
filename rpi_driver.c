@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
         if((readCount = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) == 0) break;
 
         dac_start();
-        while (1)
+        do
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
             time_difference = gettime_now.tv_nsec - start_time;
@@ -185,9 +185,10 @@ int main(int argc, char *argv[])
             if (time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference % (NSAMPLES * NBUFFERS) < 5000)
+            if(time_difference % (NSAMPLES * NBUFFERS * 100) < 5000)
                 break;
-        }
+
+        } while (1);
     }
 
     terminate(0);
