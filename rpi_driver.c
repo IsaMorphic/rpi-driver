@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        636 * 3
+#define NSAMPLES        1908
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
             if (time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference % (NSAMPLES * NBUFFERS * 100 / 3) < 5000)
+            if(time_difference % (NSAMPLES * NBUFFERS * 100 / 3) < 8000)
                 break;
         }
 
