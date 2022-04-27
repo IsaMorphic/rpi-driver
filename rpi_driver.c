@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1908
+#define NSAMPLES        636
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -164,8 +164,6 @@ int main(int argc, char *argv[])
     smi_cs->clear = 1;
 
     dac_init();
-
-    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
     while(1)
     {
         long int start_time;
@@ -187,7 +185,7 @@ int main(int argc, char *argv[])
             if (time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > (636 * 525 * 100))
+            if(time_difference > (NSAMPLES * NBUFFERS * 100))
                 break;
         }
     }
@@ -207,10 +205,10 @@ void dac_init(void)
         gpio_mode(DAC_D0_PIN+i, GPIO_ALT1);
 
     for (i=0; i<NBUFFERS; i++)
-        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
+        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES * 3));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * 30;
+    smi_l->len = NSAMPLES * NBUFFERS * 3 * 30;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
@@ -224,7 +222,7 @@ void dac_init(void)
         uint8_t *txdata = (uint8_t *)(cbs+1);
 
         cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
-        cbs[0].tfr_len = NSAMPLES;
+        cbs[0].tfr_len = NSAMPLES * 3;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
         cbs[0].next_cb = i == (NBUFFERS - 1) ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
@@ -240,7 +238,10 @@ void dac_start(void)
         DMA_CB *cbs = mp->virt;
         uint8_t *txdata = (uint8_t *)(cbs+1);
 
-        memcpy(txdata, sample_buff + i * NSAMPLES, NSAMPLES);
+        for(int j = 0; j < NSAMPLES * 3; j++)
+        {
+            txdata[j] = sample_buff[i * NSAMPLES + j / 3];
+        }
     }
 
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
