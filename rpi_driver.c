@@ -155,6 +155,12 @@ int main(int argc, char *argv[])
 {
     int i;
 
+    long int start_time;
+    long int dac_time;
+    long int time_slack;
+    long int time_difference;
+    struct timespec gettime_now;
+
     signal(SIGINT, terminate);
 
     map_devices();
@@ -168,12 +174,6 @@ int main(int argc, char *argv[])
     dac_init();
     while(1)
     {
-        long int start_time;
-        long int dac_time;
-        long int time_slack;
-        long int time_difference;
-        struct timespec gettime_now;
-
         clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
 
