@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, terminate);
 
     map_devices();
-    init_smi(0, 50, 25, 50, 25);
+    init_smi(0, 10, 25, 50, 25);
 
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -328,7 +328,6 @@ void init_smi(int width, int ns, int setup, int strobe, int hold)
         usleep(100);
     }
 
-    smi_cs->pxldat = 1;
     if (smi_cs->seterr)
         smi_cs->seterr = 1;
 
