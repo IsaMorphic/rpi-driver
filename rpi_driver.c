@@ -134,10 +134,10 @@ volatile SMI_DCS_REG *smi_dcs;
 volatile SMI_DCA_REG *smi_dca;
 volatile SMI_DCD_REG *smi_dcd;
 
-#define TX_SAMPLE_SIZE  1       // Number of raw bytes per sample
+#define TX_SAMPLE_SIZE  4       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-uint32_t sample_buff[NSAMPLES / 4 * NBUFFERS];
+uint8_t sample_buff[NSAMPLES * NBUFFERS];
 uint8_t buff_flag = 0;
 
 void dac_init(void);
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, terminate);
 
     map_devices();
-    init_smi(0, 10, 4, 5, 4);
+    init_smi(0, 4, 6, 13, 6);
 
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -214,10 +214,10 @@ void dac_init(void)
         gpio_mode(DAC_D0_PIN + i, GPIO_ALT1);
 
     for(i = 0; i < NBUFFERS; i++)
-        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES * 3));
+        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * 3;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
@@ -231,7 +231,7 @@ void dac_init(void)
         uint8_t *txdata = (uint8_t *)(cbs+1);
 
         cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
-        cbs[0].tfr_len = NSAMPLES * 3;
+        cbs[0].tfr_len = NSAMPLES * TX_SAMPLE_SIZE;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
         cbs[0].next_cb = i == NBUFFERS - 1 ? 0 : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
@@ -246,9 +246,9 @@ void dac_start(struct timespec *gettime_now)
         DMA_CB *cbs = mp->virt;
         uint32_t *txdata = (uint32_t *)(cbs+1);
 
-        for(int j = 0; j < NSAMPLES / 4 * 3; j++)
+        for(int j = 0; j < NSAMPLES; j++)
         {
-            txdata[j] = sample_buff[i * NSAMPLES / 4 + j / 3];
+            txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
         }
     }
 
