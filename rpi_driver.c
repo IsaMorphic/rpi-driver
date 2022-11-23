@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, terminate);
 
     map_devices();
-    init_smi(0, 10, 25, 50, 25);
+    init_smi(0, 10, 4, 5, 4);
 
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
