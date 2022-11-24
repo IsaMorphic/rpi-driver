@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * 100)
+            if(time_difference > NSAMPLES * NBUFFERS * 90)
                 break;
         } while(1);
     }
