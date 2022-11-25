@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     smi_cs->clear = 1;
 
     FILE* file_ptr;
-    file_ptr = fopen(argv[0], "rb");
+    file_ptr = fopen(argv[1], "rb");
 
     if(file_ptr)
     {
