@@ -140,7 +140,8 @@ volatile SMI_DCD_REG *smi_dcd;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
 void dac_init(void);
-void dac_start(struct timespec *gettime_now);
+void dac_start(void);
+int dac_next(void);
 
 void map_devices(void);
 void fail(char *s);
