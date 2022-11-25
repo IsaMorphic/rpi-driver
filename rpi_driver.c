@@ -39,7 +39,7 @@
 
 #define NSAMPLES        636
 #define NBUFFERS        525
-#define NFRAMES         60
+#define NFRAMES         20
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
