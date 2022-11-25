@@ -154,7 +154,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int read_count, buff_flag, frame_flag;
+    int read_count, buff_flag, frame_num;
     long int start_time;
     long int time_difference;
     struct timespec gettime_now;
