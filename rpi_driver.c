@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
                     read_count = dac_next();
                 }
 
-                while(frame_num)
+                while(frame_num == NFRAMES)
                 {
                     clock_gettime(CLOCK_REALTIME, &gettime_now);
                     time_difference = gettime_now.tv_nsec - start_time;
