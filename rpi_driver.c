@@ -194,10 +194,10 @@ int main(int argc, char *argv[])
                         if(time_difference < 0)
                             time_difference += 1000000000;
 
-                        // 56% of the way through the current frame (of the pair), we read the next one while it finishes displaying
+                        // 54% of the way through the current frame (of the pair), we read the next one while it finishes displaying
                         // Note: this can cause a race condition, we're just banking on the fact that reading from the SD card is almost
                         // always faster per-linebuffer (should be around 1.2x, though; so the read doesn't delay the start of the next pair)
-                        if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 20)) 
+                        if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 46)) 
                             break;
                     }
                     
