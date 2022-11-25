@@ -339,7 +339,7 @@ void terminate(int sig)
     unmap_periph_mem(&dma_regs);
     unmap_periph_mem(&gpio_regs);
 
-    system("killall ffplay.bin");
+    system("killall ffplay");
     exit(0);
 }
 
