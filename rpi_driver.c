@@ -141,7 +141,7 @@ volatile SMI_DCD_REG *smi_dcd;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
 void dac_init(FILE *file_ptr);
-int dac_next(FILE *file_ptr);
+void dac_next(FILE *file_ptr);
 void dac_start(void);
 
 void map_devices(void);
@@ -154,7 +154,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int read_count, buff_flag, frame_num;
+    int buff_flag, frame_num;
     long int start_time;
     long int time_difference;
     struct timespec gettime_now;
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
                     
                     if(buff_flag)
                     {
-                        read_count = dac_next(file_ptr);
+                        dac_next(file_ptr);
                     }
                 }
 
@@ -264,25 +264,20 @@ void dac_init(FILE* file_ptr)
     dac_next(file_ptr);
 }
 
-int dac_next(FILE* file_ptr)
+void dac_next(FILE* file_ptr)
 {
-    int read_count;
-    if((read_count = fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)) > 0)
+    fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)
+    for(int i = 0; i < NBUFFERS; i++)
     {
-        for(int i = 0; i < NBUFFERS; i++)
-        {
-            MEM_MAP *mp = &vc_mem[i];
-            DMA_CB *cbs = mp->virt;
-            uint32_t *txdata = (uint32_t *)(cbs+1);
+        MEM_MAP *mp = &vc_mem[i];
+        DMA_CB *cbs = mp->virt;
+        uint32_t *txdata = (uint32_t *)(cbs+1);
 
-            for(int j = 0; j < NSAMPLES; j++)
-            {
-                txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
-            }
+        for(int j = 0; j < NSAMPLES; j++)
+        {
+            txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
         }
     }
-
-    return read_count;
 }
 
 void dac_start(void)
