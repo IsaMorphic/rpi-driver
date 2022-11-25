@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
     }
 }
 
-void dac_init(FILE* file_ptr)
+void dac_init(void)
 {
     int i;
 
