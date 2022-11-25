@@ -39,7 +39,7 @@
 
 #define NSAMPLES        636
 #define NBUFFERS        525
-#define NFRAMES         20
+#define NFRAMES         5
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -140,9 +140,9 @@ volatile SMI_DCD_REG *smi_dcd;
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
-void dac_init(FILE *file_ptr);
-void dac_next(FILE *file_ptr);
+void dac_init(void);
 void dac_start(void);
+size_t dac_next(FILE *file_ptr);
 
 void map_devices(void);
 void fail(char *s);
@@ -170,11 +170,14 @@ int main(int argc, char *argv[])
     smi_cs->clear = 1;
 
     FILE* file_ptr;
+    size_t read_count;
     file_ptr = fopen(argv[1], "rb");
 
     if(file_ptr)
     {
-        dac_init(file_ptr);
+        dac_init();
+        dac_next(file_ptr);
+
         do
         {
             clock_gettime(CLOCK_REALTIME, &gettime_now);
@@ -203,7 +206,7 @@ int main(int argc, char *argv[])
                     
                     if(buff_flag)
                     {
-                        dac_next(file_ptr);
+                        read_count = dac_next(file_ptr);
                     }
                 }
 
@@ -220,7 +223,7 @@ int main(int argc, char *argv[])
                         break;
                 }
             }
-        } while(!feof(file_ptr));
+        } while(read_count > 0 && !feof(file_ptr));
 
         terminate(0);
         return(0);
@@ -260,24 +263,27 @@ void dac_init(FILE* file_ptr)
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
         cbs[0].next_cb = i == NBUFFERS - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
-
-    dac_next(file_ptr);
 }
 
-void dac_next(FILE* file_ptr)
+size_t dac_next(FILE* file_ptr)
 {
-    fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr);
-    for(int i = 0; i < NBUFFERS; i++)
+    size_t read_count;
+    if((read_count = fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)) > 0)
     {
-        MEM_MAP *mp = &vc_mem[i];
-        DMA_CB *cbs = mp->virt;
-        uint32_t *txdata = (uint32_t *)(cbs+1);
-
-        for(int j = 0; j < NSAMPLES; j++)
+        for(int i = 0; i < NBUFFERS; i++)
         {
-            txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
+            MEM_MAP *mp = &vc_mem[i];
+            DMA_CB *cbs = mp->virt;
+            uint32_t *txdata = (uint32_t *)(cbs+1);
+
+            for(int j = 0; j < NSAMPLES; j++)
+            {
+                txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
+            }
         }
     }
+
+    return read_count;
 }
 
 void dac_start(void)
