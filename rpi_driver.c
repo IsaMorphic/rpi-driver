@@ -140,9 +140,9 @@ volatile SMI_DCD_REG *smi_dcd;
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
-void dac_init(void);
-void dac_start(void);
+void dac_init(FILE *file_ptr);
 int dac_next(FILE *file_ptr);
+void dac_start(void);
 
 void map_devices(void);
 void fail(char *s);
