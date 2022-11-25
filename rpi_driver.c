@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 
     smi_cs->clear = 1;
 
-    dac_init();
+    dac_init(file_ptr);
     
     file_ptr = fopen(argv[0], "rb");
     do
