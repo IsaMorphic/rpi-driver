@@ -195,8 +195,11 @@ int main(int argc, char *argv[])
                     if(time_difference > NSAMPLES * NBUFFERS * (100 << frame_flag - 46)) 
                         break;
                 }
-
-                read_count = dac_next(buff_flag);
+                
+                if(buff_flag)
+                {
+                    read_count = dac_next();
+                }
             }
         }
     } while(read_count > 0);
