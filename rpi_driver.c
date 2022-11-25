@@ -200,6 +200,19 @@ int main(int argc, char *argv[])
                 {
                     read_count = dac_next();
                 }
+
+                while(frame_flag)
+                {
+                    clock_gettime(CLOCK_REALTIME, &gettime_now);
+                    time_difference = gettime_now.tv_nsec - start_time;
+
+                    if(time_difference < 0)
+                        time_difference += 1000000000;
+
+                    // wait till next boundary
+                    if(time_difference > NSAMPLES * NBUFFERS * 200) 
+                        break;
+                }
             }
         }
     } while(read_count > 0);
