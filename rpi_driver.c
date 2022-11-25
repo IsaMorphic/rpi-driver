@@ -39,6 +39,7 @@
 
 #define NSAMPLES        636
 #define NBUFFERS        525
+#define NFRAMES         4
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -175,9 +176,9 @@ int main(int argc, char *argv[])
         clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
 
-        for(frame_flag = 0; frame_flag < 2; frame_flag++)
+        for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
         {
-            if(frame_flag == 0) dac_start();
+            if(frame_num == 1) dac_start();
 
             for(buff_flag = 0; buff_flag < 2; buff_flag++)
             {
@@ -192,7 +193,7 @@ int main(int argc, char *argv[])
                     // 56% of the way through the current frame (of the pair), we read the next one while it finishes displaying
                     // Note: this can cause a race condition, we're just banking on the fact that reading from the SD card is almost
                     // always faster per-linebuffer (should be around 1.2x, though; so the read doesn't delay the start of the next pair)
-                    if(time_difference > NSAMPLES * NBUFFERS * (100 << frame_flag - 46)) 
+                    if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 46)) 
                         break;
                 }
                 
@@ -210,7 +211,7 @@ int main(int argc, char *argv[])
                         time_difference += 1000000000;
 
                     // wait till next boundary
-                    if(time_difference > NSAMPLES * NBUFFERS * 200) 
+                    if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
                         break;
                 }
             }
@@ -235,7 +236,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * 3;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * (NFRAMES + 1);
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
