@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
                         break;
                 }
             }
-        } while(read_count > 0);
+        } while(!feof(file_ptr));
 
         terminate(0);
         return(0);
