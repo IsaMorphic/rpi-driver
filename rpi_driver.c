@@ -159,8 +159,6 @@ int main(int argc, char *argv[])
     long int time_difference;
     struct timespec gettime_now;
 
-    FILE* file_ptr;
-
     signal(SIGINT, terminate);
 
     map_devices();
@@ -171,21 +169,45 @@ int main(int argc, char *argv[])
 
     smi_cs->clear = 1;
 
-    dac_init(file_ptr);
-    
+    FILE* file_ptr;
     file_ptr = fopen(argv[0], "rb");
-    do
+
+    if(file_ptr)
     {
-        clock_gettime(CLOCK_REALTIME, &gettime_now);
-        start_time = gettime_now.tv_nsec;
-
-        for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
+        dac_init(file_ptr);
+        do
         {
-            if(frame_num == 1) dac_start();
+            clock_gettime(CLOCK_REALTIME, &gettime_now);
+            start_time = gettime_now.tv_nsec;
 
-            for(buff_flag = 0; buff_flag < 2; buff_flag++)
+            for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
             {
-                while(!buff_flag)
+                if(frame_num == 1) dac_start();
+
+                for(buff_flag = 0; buff_flag < 2; buff_flag++)
+                {
+                    while(!buff_flag)
+                    {
+                        clock_gettime(CLOCK_REALTIME, &gettime_now);
+                        time_difference = gettime_now.tv_nsec - start_time;
+
+                        if(time_difference < 0)
+                            time_difference += 1000000000;
+
+                        // 56% of the way through the current frame (of the pair), we read the next one while it finishes displaying
+                        // Note: this can cause a race condition, we're just banking on the fact that reading from the SD card is almost
+                        // always faster per-linebuffer (should be around 1.2x, though; so the read doesn't delay the start of the next pair)
+                        if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 20)) 
+                            break;
+                    }
+                    
+                    if(buff_flag)
+                    {
+                        read_count = dac_next(file_ptr);
+                    }
+                }
+
+                while(frame_num == NFRAMES)
                 {
                     clock_gettime(CLOCK_REALTIME, &gettime_now);
                     time_difference = gettime_now.tv_nsec - start_time;
@@ -193,36 +215,16 @@ int main(int argc, char *argv[])
                     if(time_difference < 0)
                         time_difference += 1000000000;
 
-                    // 56% of the way through the current frame (of the pair), we read the next one while it finishes displaying
-                    // Note: this can cause a race condition, we're just banking on the fact that reading from the SD card is almost
-                    // always faster per-linebuffer (should be around 1.2x, though; so the read doesn't delay the start of the next pair)
-                    if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 20)) 
+                    // wait till next boundary
+                    if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
                         break;
                 }
-                
-                if(buff_flag)
-                {
-                    read_count = dac_next(file_ptr);
-                }
             }
+        } while(read_count > 0);
 
-            while(frame_num == NFRAMES)
-            {
-                clock_gettime(CLOCK_REALTIME, &gettime_now);
-                time_difference = gettime_now.tv_nsec - start_time;
-
-                if(time_difference < 0)
-                    time_difference += 1000000000;
-
-                // wait till next boundary
-                if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
-                    break;
-            }
-        }
-    } while(read_count > 0);
-
-    terminate(0);
-    return(0);
+        terminate(0);
+        return(0);
+    }
 }
 
 void dac_init(FILE* file_ptr)
