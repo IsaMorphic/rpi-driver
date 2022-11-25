@@ -266,7 +266,7 @@ void dac_init(FILE* file_ptr)
 
 void dac_next(FILE* file_ptr)
 {
-    fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)
+    fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr);
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
