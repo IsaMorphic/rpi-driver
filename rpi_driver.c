@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
     pid = fork();
     if(pid == 0)
     {
-        execlp("ffplay", " ", "-i", argv[2], "-loop", "0", NULL);
+        execlp("ffplay", " ", "-i", argv[2], "-loop", "4", "-vn", NULL);
         _exit(0);
     }
     else
