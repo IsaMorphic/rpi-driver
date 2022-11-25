@@ -159,6 +159,8 @@ int main(int argc, char *argv[])
     long int time_difference;
     struct timespec gettime_now;
 
+    FILE* file_ptr;
+
     signal(SIGINT, terminate);
 
     map_devices();
@@ -171,6 +173,7 @@ int main(int argc, char *argv[])
 
     dac_init();
     
+    file_ptr = fopen(argv[0], "rb");
     do
     {
         clock_gettime(CLOCK_REALTIME, &gettime_now);
@@ -259,10 +262,10 @@ void dac_init(void)
     dac_next();
 }
 
-int dac_next(void)
+int dac_next(FILE* file_ptr)
 {
     int read_count;
-    if((read_count = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) > 0)
+    if((read_count = fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)) > 0)
     {
         for(int i = 0; i < NBUFFERS; i++)
         {
