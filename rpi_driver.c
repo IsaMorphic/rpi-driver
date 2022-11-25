@@ -39,7 +39,7 @@
 
 #define NSAMPLES        636
 #define NBUFFERS        525
-#define NFRAMES         5
+#define NFRAMES         2
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -201,19 +201,19 @@ int main(int argc, char *argv[])
                 {
                     read_count = dac_next();
                 }
+            }
 
-                while(frame_num == NFRAMES)
-                {
-                    clock_gettime(CLOCK_REALTIME, &gettime_now);
-                    time_difference = gettime_now.tv_nsec - start_time;
+            while(frame_num == NFRAMES)
+            {
+                clock_gettime(CLOCK_REALTIME, &gettime_now);
+                time_difference = gettime_now.tv_nsec - start_time;
 
-                    if(time_difference < 0)
-                        time_difference += 1000000000;
+                if(time_difference < 0)
+                    time_difference += 1000000000;
 
-                    // wait till next boundary
-                    if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
-                        break;
-                }
+                // wait till next boundary
+                if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
+                    break;
             }
         }
     } while(read_count > 0);
