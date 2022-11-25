@@ -154,55 +154,73 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int buff_flag, frame_num;
-    long int start_time;
-    long int time_difference;
-    struct timespec gettime_now;
-
-    signal(SIGINT, terminate);
-
-    map_devices();
-    init_smi(0, 10, 3, 4, 3);
-
-    gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
-    gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
-
-    smi_cs->clear = 1;
-
-    FILE* file_ptr;
-    size_t read_count;
-    file_ptr = fopen(argv[1], "rb");
-
-    if(file_ptr)
+    // start audio player
+    int pid;
+    pid = fork();
+    if(pid == 0)
     {
-        // start audio player
-        int pid;
-        pid=fork();
-        if(pid==0)
-        {
-            execlp("ffplay", " ", argv[2], NULL);
-            _exit(0);
-        }
-        else
-        {
-            wait();
-        }
+        execlp("ffplay", " ", argv[2], NULL);
+        _exit(0);
+    }
+    else
+    {
+        int buff_flag, frame_num;
+        long int start_time;
+        long int time_difference;
+        struct timespec gettime_now;
 
-        dac_init();
-        dac_next(file_ptr);
+        signal(SIGINT, terminate);
 
-        do
+        map_devices();
+        init_smi(0, 10, 3, 4, 3);
+
+        gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
+        gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
+
+        smi_cs->clear = 1;
+
+        FILE* file_ptr;
+        size_t read_count;
+        file_ptr = fopen(argv[1], "rb");
+
+        if(file_ptr)
         {
-            clock_gettime(CLOCK_REALTIME, &gettime_now);
-            start_time = gettime_now.tv_nsec;
+            dac_init();
+            dac_next(file_ptr);
 
-            for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
+            do
             {
-                if(frame_num == 1) dac_start();
+                clock_gettime(CLOCK_REALTIME, &gettime_now);
+                start_time = gettime_now.tv_nsec;
 
-                for(buff_flag = 0; buff_flag < 2; buff_flag++)
+                for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
                 {
-                    while(!buff_flag)
+                    if(frame_num == 1) dac_start();
+
+                    for(buff_flag = 0; buff_flag < 2; buff_flag++)
+                    {
+                        while(!buff_flag)
+                        {
+                            clock_gettime(CLOCK_REALTIME, &gettime_now);
+                            time_difference = gettime_now.tv_nsec - start_time;
+
+                            if(time_difference < 0)
+                                time_difference += 1000000000;
+
+                            // 54% of the way through the current frame (of the pair), we read the next one while it finishes displaying
+                            // Note: this can cause a race condition, we're just banking on the fact that reading from the SD card is almost
+                            // always faster per-linebuffer (should be around 1.2x, though; so the read doesn't delay the start of the next pair)
+                            if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 46)) 
+                                break;
+                        }
+                        
+                        if(buff_flag)
+                        {
+                            read_count = dac_next(file_ptr);
+                        }
+                    }
+
+                    while(frame_num == NFRAMES)
                     {
                         clock_gettime(CLOCK_REALTIME, &gettime_now);
                         time_difference = gettime_now.tv_nsec - start_time;
@@ -210,37 +228,17 @@ int main(int argc, char *argv[])
                         if(time_difference < 0)
                             time_difference += 1000000000;
 
-                        // 54% of the way through the current frame (of the pair), we read the next one while it finishes displaying
-                        // Note: this can cause a race condition, we're just banking on the fact that reading from the SD card is almost
-                        // always faster per-linebuffer (should be around 1.2x, though; so the read doesn't delay the start of the next pair)
-                        if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 46)) 
+                        // wait till next boundary
+                        if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
                             break;
                     }
-                    
-                    if(buff_flag)
-                    {
-                        read_count = dac_next(file_ptr);
-                    }
                 }
+            } while(read_count > 0 && !feof(file_ptr));
 
-                while(frame_num == NFRAMES)
-                {
-                    clock_gettime(CLOCK_REALTIME, &gettime_now);
-                    time_difference = gettime_now.tv_nsec - start_time;
-
-                    if(time_difference < 0)
-                        time_difference += 1000000000;
-
-                    // wait till next boundary
-                    if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
-                        break;
-                }
-            }
-        } while(read_count > 0 && !feof(file_ptr));
-
-        system("killall ffplay.bin");
-        terminate(0);
-        return(0);
+            system("killall ffplay.bin");
+            terminate(0);
+            return(0);
+        }
     }
 }
 
