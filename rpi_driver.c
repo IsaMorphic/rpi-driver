@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
     return(0);
 }
 
-void dac_init(void)
+void dac_init(FILE* file_ptr)
 {
     int i;
 
@@ -259,7 +259,7 @@ void dac_init(void)
         cbs[0].next_cb = i == NBUFFERS - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
 
-    dac_next();
+    dac_next(file_ptr);
 }
 
 int dac_next(FILE* file_ptr)
