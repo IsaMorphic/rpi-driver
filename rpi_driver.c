@@ -175,6 +175,19 @@ int main(int argc, char *argv[])
 
     if(file_ptr)
     {
+        // start audio player
+        int pid;
+        pid=fork();
+        if(pid==0)
+        {
+            execlp("ffplay", " ", argv[2], NULL);
+            _exit(0);
+        }
+        else
+        {
+            wait();
+        }
+
         dac_init();
         dac_next(file_ptr);
 
@@ -225,6 +238,7 @@ int main(int argc, char *argv[])
             }
         } while(read_count > 0 && !feof(file_ptr));
 
+        system("killall ffplay.bin");
         terminate(0);
         return(0);
     }
