@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
                 
                 if(buff_flag)
                 {
-                    read_count = dac_next();
+                    read_count = dac_next(file_ptr);
                 }
             }
 
