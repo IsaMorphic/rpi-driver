@@ -142,7 +142,7 @@ uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
 void dac_init(void);
 void dac_start(void);
-int dac_next(void);
+int dac_next(FILE *file_ptr);
 
 void map_devices(void);
 void fail(char *s);
