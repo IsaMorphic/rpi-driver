@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
             if(time_difference < 0)
                 time_difference += 1000000000;
 
-            if(time_difference > NSAMPLES * NBUFFERS * 3000)
+            if(time_difference > NSAMPLES * NBUFFERS * 300)
                 break;
         } while(1);
     }
@@ -217,7 +217,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * 30;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * 3;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
