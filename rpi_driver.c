@@ -154,6 +154,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
+    /*
     // start audio player
     int pid;
     pid = fork();
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
         _exit(0);
     }
     else
-    {
+    {*/
         int buff_flag, frame_num;
         long int start_time;
         long int time_difference;
@@ -238,7 +239,7 @@ int main(int argc, char *argv[])
             terminate(0);
             return(0);
         }
-    }
+    //}
 }
 
 void dac_init(void)
