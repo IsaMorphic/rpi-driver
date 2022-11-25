@@ -235,7 +235,6 @@ int main(int argc, char *argv[])
                 }
             } while(read_count > 0 && !feof(file_ptr));
 
-            system("killall ffplay.bin");
             terminate(0);
             return(0);
         }
@@ -339,6 +338,8 @@ void terminate(int sig)
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
     unmap_periph_mem(&gpio_regs);
+
+    system("killall ffplay.bin");
     exit(0);
 }
 
