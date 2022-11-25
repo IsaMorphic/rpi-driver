@@ -175,11 +175,11 @@ int main(int argc, char *argv[])
         clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
 
-        for(frame_flag = 0; frame_flag < 1; frame_flag++)
+        for(frame_flag = 0; frame_flag < 2; frame_flag++)
         {
             if(frame_flag == 0) dac_start();
 
-            for(buff_flag = 0; buff_flag < 1; buff_flag++)
+            for(buff_flag = 0; buff_flag < 2; buff_flag++)
             {
                 while(!buff_flag)
                 {
