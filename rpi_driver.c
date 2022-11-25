@@ -138,7 +138,6 @@ volatile SMI_DCD_REG *smi_dcd;
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
-uint8_t buff_flag = 0;
 
 void dac_init(void);
 void dac_start(struct timespec *gettime_now);
@@ -153,11 +152,8 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int i;
-
+    int read_count, buff_flag, frame_flag;
     long int start_time;
-    long int dac_time;
-    long int time_slack;
     long int time_difference;
     struct timespec gettime_now;
 
@@ -172,32 +168,37 @@ int main(int argc, char *argv[])
     smi_cs->clear = 1;
 
     dac_init();
-    while(1)
+    
+    do
     {
         clock_gettime(CLOCK_REALTIME, &gettime_now);
         start_time = gettime_now.tv_nsec;
 
-        dac_start(&gettime_now);
-        dac_time = gettime_now.tv_nsec;
-
-        long int tmp = dac_time - start_time;
-        if(tmp < 0) tmp += 1000000000;
-        time_slack = (time_slack + tmp) >> 1;
-
-        if(read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS) == 0) break;
-
-        do
+        for(frame_flag = 0; frame_flag < 1; frame_flag++)
         {
-            clock_gettime(CLOCK_REALTIME, &gettime_now);
-            time_difference = gettime_now.tv_nsec - dac_time + time_slack;
+            if(frame_flag == 0) dac_start();
 
-            if(time_difference < 0)
-                time_difference += 1000000000;
+            for(buff_flag = 0; buff_flag < 1; buff_flag++)
+            {
+                while(!buff_flag)
+                {
+                    clock_gettime(CLOCK_REALTIME, &gettime_now);
+                    time_difference = gettime_now.tv_nsec - start_time;
 
-            if(time_difference > NSAMPLES * NBUFFERS * 300)
-                break;
-        } while(1);
-    }
+                    if(time_difference < 0)
+                        time_difference += 1000000000;
+
+                    // 60% of the way through the current frame (of the pair), we read the next one while it finishes displaying
+                    // Note: this can cause a race condition, we're just banking on the fact that reading from the SD card is almost
+                    // always faster per-linebuffer (should be roughly close to 1.5x, though; so the read doesn't delay the start of the next pair)
+                    if(time_difference > NSAMPLES * NBUFFERS * (100 << frame_flag - 40)) 
+                        break;
+                }
+
+                read_count = dac_next(buff_flag);
+            }
+        }
+    } while(read_count > 0);
 
     terminate(0);
     return(0);
@@ -236,24 +237,33 @@ void dac_init(void)
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
         cbs[0].next_cb = i == NBUFFERS - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
+
+    dac_next();
 }
 
-void dac_start(struct timespec *gettime_now)
+int dac_next(void)
 {
-    for(int i = 0; i < NBUFFERS; i++)
+    int read_count;
+    if((read_count = read(STDIN_FILENO, sample_buff, NSAMPLES * NBUFFERS)) > 0)
     {
-        MEM_MAP *mp = &vc_mem[i];
-        DMA_CB *cbs = mp->virt;
-        uint32_t *txdata = (uint32_t *)(cbs+1);
-
-        for(int j = 0; j < NSAMPLES; j++)
+        for(int i = 0; i < NBUFFERS; i++)
         {
-            txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
+            MEM_MAP *mp = &vc_mem[i];
+            DMA_CB *cbs = mp->virt;
+            uint32_t *txdata = (uint32_t *)(cbs+1);
+
+            for(int j = 0; j < NSAMPLES; j++)
+            {
+                txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
+            }
         }
     }
 
-    clock_gettime(CLOCK_REALTIME, gettime_now);
+    return read_count;
+}
 
+void dac_start(void)
+{
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
 }
