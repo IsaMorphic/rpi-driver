@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
                 read_count = dac_next(file_ptr);
                 dac_start();
 
-                deadline.tv_nsec += NSAMPLES * NBUFFERS * 98;
+                deadline.tv_nsec += NSAMPLES * NBUFFERS * 100;
                 if(deadline.tv_nsec >= 1000000000) 
                 {
                     deadline.tv_nsec -= 1000000000;
@@ -220,7 +220,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * (NBUFFERS * 11) * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
