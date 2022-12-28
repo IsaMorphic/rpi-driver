@@ -138,7 +138,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  4       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-uint8_t sample_buff[NSAMPLES * NBUFFERS];
+uint8_t sample_buff[NSAMPLES * NBUFFERS * NFRAMES];
 
 void dac_init(void);
 void dac_start(void);
