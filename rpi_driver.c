@@ -300,7 +300,7 @@ void terminate(int sig)
     if (smi_regs.virt)
         *REG32(smi_regs, SMI_CS) = 0;
     stop_dma(DMA_CHAN_A);
-    for(i=0; i<NBUFFERS; i++)
+    for(i=0; i<NFRAMES; i++)
         unmap_periph_mem(&vc_mem[i]);
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
