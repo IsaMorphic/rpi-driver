@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
                 {
                     if(frame_num == 1) dac_start();
 
-                    deadline.tv_nsec += NSAMPLES * NBUFFERS * (100 * frame_num - 10);
+                    deadline.tv_nsec += NSAMPLES * NBUFFERS * 90;
                     if(deadline.tv_nsec >= 1000000000) 
                     {
                         deadline.tv_nsec -= 1000000000;
