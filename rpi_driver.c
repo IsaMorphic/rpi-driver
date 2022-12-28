@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
         signal(SIGINT, terminate);
 
         map_devices();
-        init_smi(0, 10, 3, 4, 3);
+        init_smi(0, 6,  6, 13,  6);
 
         gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
         gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
                 read_count = dac_next(file_ptr);
                 dac_start();
 
-                deadline.tv_nsec += NSAMPLES * NBUFFERS * 98;
+                deadline.tv_nsec += NSAMPLES * NBUFFERS * 100;
                 if(deadline.tv_nsec >= 1000000000) 
                 {
                     deadline.tv_nsec -= 1000000000;
