@@ -204,6 +204,13 @@ int main(int argc, char *argv[])
 
                     clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &deadline, NULL);
                     read_count = dac_next(file_ptr);
+
+                    deadline.tv_nsec += NSAMPLES * NBUFFERS * 10;
+                    if(deadline.tv_nsec >= 1000000000) 
+                    {
+                        deadline.tv_nsec -= 1000000000;
+                        deadline.tv_sec++;
+                    }
                 }
             } while(read_count > 0 && !feof(file_ptr));
 
