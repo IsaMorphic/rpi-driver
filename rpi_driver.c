@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
         {
             dac_init();
             dac_next(file_ptr);
-            
+
             clock_gettime(CLOCK_REALTIME, &deadline);
             do
             {
@@ -195,15 +195,15 @@ int main(int argc, char *argv[])
                 {
                     if(frame_num == 1) dac_start();
 
-                    deadline.tv_nsec += NSAMPLES * NBUFFERS * 100;
+                    deadline.tv_nsec += NSAMPLES * NBUFFERS * 90;
                     if(deadline.tv_nsec >= 1000000000) 
                     {
                         deadline.tv_nsec -= 1000000000;
                         deadline.tv_sec++;
                     }
 
-                    read_count = dac_next(file_ptr);
                     clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &deadline, NULL);
+                    read_count = dac_next(file_ptr);
                 }
             } while(read_count > 0 && !feof(file_ptr));
 
