@@ -186,32 +186,20 @@ int main(int argc, char *argv[])
         if(file_ptr)
         {
             dac_init();
-            dac_next(file_ptr);
-
             clock_gettime(CLOCK_REALTIME, &deadline);
             do
             {
-                for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
+                deadline.tv_nsec += NSAMPLES * NBUFFERS * NFRAMES * 100;
+                if(deadline.tv_nsec >= 1000000000) 
                 {
-                    if(frame_num == 1) dac_start();
+                    deadline.tv_nsec -= 1000000000;
+                    deadline.tv_sec++;
+                }   
+                
+                read_count = dac_next(file_ptr);
+                if(frame_num == 1) dac_start();
 
-                    deadline.tv_nsec += NSAMPLES * NBUFFERS * 90;
-                    if(deadline.tv_nsec >= 1000000000) 
-                    {
-                        deadline.tv_nsec -= 1000000000;
-                        deadline.tv_sec++;
-                    }
-
-                    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &deadline, NULL);
-                    read_count = dac_next(file_ptr);
-
-                    deadline.tv_nsec += NSAMPLES * NBUFFERS * 10;
-                    if(deadline.tv_nsec >= 1000000000) 
-                    {
-                        deadline.tv_nsec -= 1000000000;
-                        deadline.tv_sec++;
-                    }
-                }
+                clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &deadline, NULL);
             } while(read_count > 0 && !feof(file_ptr));
 
             terminate(0);
@@ -258,7 +246,7 @@ void dac_init(void)
 size_t dac_next(FILE* file_ptr)
 {
     size_t read_count;
-    if((read_count = fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)) > 0)
+    if((read_count = fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS * NFRAMES, file_ptr)) > 0)
     {
         for(int i = 0; i < NBUFFERS; i++)
         {
