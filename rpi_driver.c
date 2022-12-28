@@ -37,9 +37,9 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        318
+#define NSAMPLES        159
 #define NBUFFERS        525
-#define NFRAMES         12
+#define NFRAMES         6
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -222,7 +222,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES * NBUFFERS));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * (NFRAMES + 1);
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * NFRAMES;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
