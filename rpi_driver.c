@@ -186,13 +186,14 @@ int main(int argc, char *argv[])
         if(file_ptr)
         {
             dac_init();
-            dac_next(file_ptr);
-
             clock_gettime(CLOCK_REALTIME, &deadline);
             do
             {
                 for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
                 {
+                    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &deadline, NULL);
+                    read_count = dac_next(file_ptr);
+
                     if(frame_num == 1) dac_start();
 
                     deadline.tv_nsec += NSAMPLES * NBUFFERS * 100;
