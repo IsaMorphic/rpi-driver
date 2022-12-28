@@ -183,11 +183,10 @@ int main(int argc, char *argv[])
         if(file_ptr)
         {
             dac_init();
-            dac_next(file_ptr);
-
             clock_gettime(CLOCK_MONOTONIC, &deadline);
             do
             {
+                read_count = dac_next(file_ptr);
                 dac_start();
 
                 // Add the time you want to sleep
@@ -199,8 +198,6 @@ int main(int argc, char *argv[])
                     deadline.tv_nsec -= 1000000000;
                     deadline.tv_sec++;
                 }
-
-                read_count = dac_next(file_ptr);
                 clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             } while(read_count > 0 && !feof(file_ptr));
 
