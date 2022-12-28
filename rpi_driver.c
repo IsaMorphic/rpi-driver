@@ -122,7 +122,7 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 extern MEM_MAP gpio_regs, dma_regs;
 MEM_MAP clk_regs, smi_regs;
 
-MEM_MAP vc_mem[NBUFFERS];
+MEM_MAP vc_mem[NFRAMES];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -218,8 +218,8 @@ void dac_init(void)
     for(i = 0; i < DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN + i, GPIO_ALT1);
 
-    for(i = 0; i < NBUFFERS; i++)
-        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
+    for(i = 0; i < NFRAMES; i++)
+        map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES * NBUFFERS));
 
     smi_dsr->rwidth = SMI_8_BITS;
     smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * (NFRAMES + 1);
