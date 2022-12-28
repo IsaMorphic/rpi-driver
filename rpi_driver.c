@@ -39,6 +39,7 @@
 
 #define NSAMPLES        636
 #define NBUFFERS        525
+#define NFRAMES         10
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -164,7 +165,10 @@ int main(int argc, char *argv[])
     }
     else
     {*/
-        struct timespec deadline;
+        int buff_flag, frame_num;
+        long int start_time;
+        long int time_difference;
+        struct timespec gettime_now;
 
         signal(SIGINT, terminate);
 
@@ -183,22 +187,50 @@ int main(int argc, char *argv[])
         if(file_ptr)
         {
             dac_init();
-            clock_gettime(CLOCK_MONOTONIC, &deadline);
+            dac_next(file_ptr);
+
             do
             {
-                read_count = dac_next(file_ptr);
-                dac_start();
+                clock_gettime(CLOCK_REALTIME, &gettime_now);
+                start_time = gettime_now.tv_nsec;
 
-                // Add the time you want to sleep
-                deadline.tv_nsec += NSAMPLES * NBUFFERS * 100;
-
-                // Normalize the time to account for the second boundary
-                if(deadline.tv_nsec >= 1000000000) 
+                for(frame_num = 1; frame_num <= NFRAMES; frame_num++)
                 {
-                    deadline.tv_nsec -= 1000000000;
-                    deadline.tv_sec++;
+                    if(frame_num == 1) dac_start();
+
+                    for(buff_flag = 0; buff_flag < 2; buff_flag++)
+                    {
+                        while(!buff_flag)
+                        {
+                            clock_gettime(CLOCK_REALTIME, &gettime_now);
+                            time_difference = gettime_now.tv_nsec - start_time;
+
+                            if(time_difference < 0)
+                                time_difference += 1000000000;
+
+                            if(time_difference > NSAMPLES * NBUFFERS * (100 * frame_num - 5)) 
+                                break;
+                        }
+                        
+                        if(buff_flag)
+                        {
+                            read_count = dac_next(file_ptr);
+                        }
+                    }
+
+                    while(frame_num == NFRAMES)
+                    {
+                        clock_gettime(CLOCK_REALTIME, &gettime_now);
+                        time_difference = gettime_now.tv_nsec - start_time;
+
+                        if(time_difference < 0)
+                            time_difference += 1000000000;
+
+                        // wait till next boundary
+                        if(time_difference > NSAMPLES * NBUFFERS * NFRAMES * 100) 
+                            break;
+                    }
                 }
-                clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             } while(read_count > 0 && !feof(file_ptr));
 
             terminate(0);
@@ -221,7 +253,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE * (NFRAMES + 1);
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
