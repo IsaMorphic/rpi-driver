@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        318
+#define NSAMPLES        635
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     }
     else
     {*/
-        int buff_flag, frame_num;
+        int parity_flag;
         long int time_difference;
         struct timespec deadline;
 
@@ -191,13 +191,15 @@ int main(int argc, char *argv[])
                 read_count = dac_next(file_ptr);
                 dac_start();
 
-                deadline.tv_nsec += NSAMPLES * NBUFFERS * 100;
+                deadline.tv_nsec += (NSAMPLES + parity_flag) * NBUFFERS * 100;
                 if(deadline.tv_nsec >= 1000000000) 
                 {
                     deadline.tv_nsec -= 1000000000;
                     deadline.tv_sec++;
                 }
                 clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+
+                parity_flag = !parity_flag;
             } while(read_count > 0 && !feof(file_ptr));
 
             terminate(0);
