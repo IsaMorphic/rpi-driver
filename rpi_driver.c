@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        636
+#define NSAMPLES        1271
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
         signal(SIGINT, terminate);
 
         map_devices();
-        init_smi(0, 10, 3, 4, 3);
+        init_smi(0, 4, 6, 13, 6);
 
         gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
         gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
                 read_count = dac_next(file_ptr);
                 dac_start();
 
-                deadline.tv_nsec += NSAMPLES * NBUFFERS * 98;
+                deadline.tv_nsec += NSAMPLES * NBUFFERS * 100;
                 if(deadline.tv_nsec >= 1000000000) 
                 {
                     deadline.tv_nsec -= 1000000000;
@@ -220,7 +220,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * (NBUFFERS * 21) * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * (NBUFFERS * 11) * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
