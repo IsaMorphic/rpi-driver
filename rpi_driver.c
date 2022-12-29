@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
                 read_count = dac_next(file_ptr);
                 dac_start();
 
-                deadline.tv_nsec += (NSAMPLES + parity_flag) * NBUFFERS * 100;
+                deadline.tv_nsec += (NSAMPLES + parity_flag) * NBUFFERS * 98;
                 if(deadline.tv_nsec >= 1000000000) 
                 {
                     deadline.tv_nsec -= 1000000000;
