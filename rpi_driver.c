@@ -37,9 +37,9 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        636
+#define NSAMPLES        1589
 #define NBUFFERS        525
-#define NFRAMES         3
+#define NFRAMES         2
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
         signal(SIGINT, terminate);
 
         map_devices();
-        init_smi(0, 4, 6, 13, 6);
+        init_smi(0, 4,  3,  8,  4);
 
         gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
         gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -181,7 +181,8 @@ int main(int argc, char *argv[])
 
         FILE* file_ptr;
         size_t read_count;
-        file_ptr = fopen(argv[1], "rb");
+        file_ptr = stdin; //fopen(argv[1], "rb");
+        freopen(NULL, "rb", stdin);
 
         if(file_ptr)
         {
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
                 dac_start();
                 for(frame_num = 0; frame_num < NFRAMES; frame_num++)
                 {
-                    deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 98;
+                    deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 4;
                     if(deadline.tv_nsec >= 1000000000) 
                     {  
                         deadline.tv_nsec -= 1000000000;
