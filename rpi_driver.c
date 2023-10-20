@@ -176,8 +176,7 @@ int main(int argc, char *argv[])
 
         FILE* file_ptr;
         size_t read_count;
-        file_ptr = stdin; //fopen(argv[1], "rb");
-        freopen(NULL, "rb", stdin);
+        file_ptr = stdin;
 
         if(file_ptr)
         {
