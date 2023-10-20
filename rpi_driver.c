@@ -233,19 +233,17 @@ void dac_init(void)
 
 size_t dac_next(FILE* file_ptr)
 {
-    size_t read_count;
-    if((read_count = fread(sample_buff, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)) > 0)
+    size_t read_count = 0;
+    while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)) < NSAMPLES * NBUFFERS && !feof(file_ptr)) ;
+    for(int i = 0; i < NBUFFERS; i++)
     {
-        for(int i = 0; i < NBUFFERS; i++)
-        {
-            MEM_MAP *mp = &vc_mem[i];
-            DMA_CB *cbs = mp->virt;
-            uint32_t *txdata = (uint32_t *)(cbs+1);
+        MEM_MAP *mp = &vc_mem[i];
+        DMA_CB *cbs = mp->virt;
+        uint32_t *txdata = (uint32_t *)(cbs+1);
 
-            for(int j = 0; j < NSAMPLES; j++)
-            {
-                txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
-            }
+        for(int j = 0; j < NSAMPLES; j++)
+        {
+            txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
         }
     }
 
