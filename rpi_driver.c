@@ -177,22 +177,19 @@ int main(int argc, char *argv[])
         FILE* file_ptr;
         size_t read_count;
         file_ptr = stdin;
-
-        if(file_ptr)
+        
+        dac_init();
+        read_count = dac_next(file_ptr);
+        do
         {
-            dac_init();
+            dac_start();
+            printf("testing shit");
+            sleep(100);
             read_count = dac_next(file_ptr);
-            do
-            {
-                dac_start();
-                printf("testing shit");
-                sleep(100);
-                read_count = dac_next(file_ptr);
-            } while(read_count > 0 && !feof(file_ptr));
+        } while(read_count > 0 && !feof(file_ptr));
 
-            terminate(0);
-            return(0);
-        }
+        terminate(0);
+        return(0);
     //}
 }
 
