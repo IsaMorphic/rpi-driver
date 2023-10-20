@@ -186,9 +186,9 @@ int main(int argc, char *argv[])
             do
             {
                 dac_start();
+                printf("testing shit");
                 sleep(100);
                 read_count = dac_next(file_ptr);
-                printf("testing shit");
             } while(read_count > 0 && !feof(file_ptr));
 
             terminate(0);
