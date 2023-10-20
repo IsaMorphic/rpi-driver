@@ -38,7 +38,7 @@
 #define DAC_NPINS       8
 
 #define NSAMPLES        2002
-#define NBUFFERS        1250
+#define NBUFFERS        125
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
     do
     {
         dac_start();
-        sleep(100);
+        sleep(10);
         read_count = dac_next(file_ptr);
     } while(read_count > 0 && !feof(file_ptr));
 
