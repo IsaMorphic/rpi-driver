@@ -190,6 +190,7 @@ int main(int argc, char *argv[])
                 read_count = dac_next(file_ptr);
             } while(read_count > 0);
 
+            printf("died");
             terminate(0);
             return(0);
         }
