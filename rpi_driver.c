@@ -186,9 +186,9 @@ int main(int argc, char *argv[])
             do
             {
                 dac_start();
-                usleep(1001000);
+                usleep(100100);
                 read_count = dac_next(file_ptr);
-            } while(read_count > 0 && !feof(file_ptr));
+            } while(read_count > 0);
 
             terminate(0);
             return(0);
@@ -234,7 +234,7 @@ void dac_init(void)
 size_t dac_next(FILE* file_ptr)
 {
     size_t read_count = 0;
-    while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS - read_count, file_ptr)) < NSAMPLES * NBUFFERS && !feof(file_ptr)) ;
+    while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS - read_count, file_ptr)) < NSAMPLES * NBUFFERS) ;
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
