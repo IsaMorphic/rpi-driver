@@ -261,7 +261,6 @@ void map_devices(void)
     map_periph(&dma_regs, (void *)DMA_BASE, PAGE_SIZE);
     map_periph(&clk_regs, (void *)CLK_BASE, PAGE_SIZE);
     map_periph(&smi_regs, (void *)SMI_BASE, PAGE_SIZE);
-    memset(smi_regs.virt, 0, SMI_REGLEN);
 }
 
 // Catastrophic failure in initial setup
