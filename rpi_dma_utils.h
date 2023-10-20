@@ -28,7 +28,7 @@
 #define BUS_REG_BASE    0x7E000000
 
 // If non-zero, print debug information
-#define DEBUG           1
+#define DEBUG           0
 
 // If non-zero, set PWM clock using VideoCore mailbox
 #define USE_VC_CLOCK_SET 0

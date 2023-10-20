@@ -27,7 +27,7 @@
 #include "rpi_dma_utils.h"
 
 // If non-zero, print debug information
-#define DEBUG           1
+#define DEBUG           0
 // If non-zero, enable PWM hardware output
 #define PWM_OUT         0
 
