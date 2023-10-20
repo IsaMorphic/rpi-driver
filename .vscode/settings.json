@@ -1,0 +1,5 @@
+{
+    "files.associations": {
+        "rpi_dma_utils.h": "c"
+    }
+}
