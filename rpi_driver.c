@@ -167,9 +167,8 @@ int main(int argc, char *argv[])
         signal(SIGINT, terminate);
 
         map_devices();
-        init_smi(0, 4,  3,  8,  4);
-
         printf("testing shit\n");
+        init_smi(0, 4,  3,  8,  4);
 
         gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
         gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -262,6 +261,7 @@ void map_devices(void)
     map_periph(&dma_regs, (void *)DMA_BASE, PAGE_SIZE);
     map_periph(&clk_regs, (void *)CLK_BASE, PAGE_SIZE);
     map_periph(&smi_regs, (void *)SMI_BASE, PAGE_SIZE);
+    memset(smi_regs.virt, 0, SMI_REGLEN);
 }
 
 // Catastrophic failure in initial setup
