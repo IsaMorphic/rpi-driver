@@ -234,7 +234,7 @@ void dac_init(void)
 size_t dac_next(FILE* file_ptr)
 {
     size_t read_count = 0;
-    while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS, file_ptr)) < NSAMPLES * NBUFFERS && !feof(file_ptr)) ;
+    while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS - read_count, file_ptr)) < NSAMPLES * NBUFFERS && !feof(file_ptr)) ;
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
