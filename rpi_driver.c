@@ -220,7 +220,7 @@ size_t dac_next(FILE* file_ptr)
     size_t read_count = 0;
     while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS - read_count, file_ptr)) < NSAMPLES * NBUFFERS) 
     {
-        if(feof(file_ptr)) return;
+        if(feof(file_ptr)) return read_count;
     }
     for(int i = 0; i < NBUFFERS; i++)
     {
