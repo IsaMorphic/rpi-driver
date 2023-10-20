@@ -164,7 +164,6 @@ int main(int argc, char *argv[])
     }
     else
     {*/
-        printf("testing shit\n");
         signal(SIGINT, terminate);
 
         map_devices();
@@ -178,7 +177,8 @@ int main(int argc, char *argv[])
         FILE* file_ptr;
         size_t read_count;
         file_ptr = stdin;
-
+        
+        printf("testing shit\n");
         dac_init();
         read_count = dac_next(file_ptr);
         do
