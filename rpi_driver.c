@@ -167,6 +167,7 @@ int main(int argc, char *argv[])
         signal(SIGINT, terminate);
 
         map_devices();
+        printf("testing shit\n");
         init_smi(0, 4,  3,  8,  4);
 
         gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
@@ -177,8 +178,7 @@ int main(int argc, char *argv[])
         FILE* file_ptr;
         size_t read_count;
         file_ptr = stdin;
-        
-        printf("testing shit\n");
+
         dac_init();
         read_count = dac_next(file_ptr);
         do
