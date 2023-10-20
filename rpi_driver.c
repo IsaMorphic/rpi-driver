@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     }
     else
     {*/
-        printf("testing shit");
+        printf("testing shit\n");
         signal(SIGINT, terminate);
 
         map_devices();
