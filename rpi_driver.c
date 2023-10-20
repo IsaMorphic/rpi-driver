@@ -37,9 +37,8 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1589
-#define NBUFFERS        525
-#define NFRAMES         2
+#define NSAMPLES        2002
+#define NBUFFERS        1250
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -165,10 +164,6 @@ int main(int argc, char *argv[])
     }
     else
     {*/
-        int parity_flag, frame_num;
-        long int time_difference;
-        struct timespec deadline;
-
         signal(SIGINT, terminate);
 
         map_devices();
@@ -188,23 +183,11 @@ int main(int argc, char *argv[])
         {
             dac_init();
             read_count = dac_next(file_ptr);
-            clock_gettime(CLOCK_MONOTONIC, &deadline);
             do
             {
                 dac_start();
-                for(frame_num = 0; frame_num < NFRAMES; frame_num++)
-                {
-                    deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 4;
-                    if(deadline.tv_nsec >= 1000000000) 
-                    {  
-                        deadline.tv_nsec -= 1000000000;
-                        deadline.tv_sec++;
-                    }
-                    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-                    
-                    read_count = dac_next(file_ptr);
-                    parity_flag = !parity_flag;
-                }
+                usleep(100);
+                read_count = dac_next(file_ptr);
             } while(read_count > 0 && !feof(file_ptr));
 
             terminate(0);
@@ -227,7 +210,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * (NFRAMES + 1) * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
