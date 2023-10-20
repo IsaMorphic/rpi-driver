@@ -153,44 +153,31 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    /*
-    // start audio player
-    int pid;
-    pid = fork();
-    if(pid == 0)
+    signal(SIGINT, terminate);
+
+    map_devices();
+    init_smi(0, 4,  3,  8,  4);
+
+    gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
+    gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
+
+    smi_cs->clear = 1;
+
+    FILE* file_ptr;
+    size_t read_count;
+    file_ptr = stdin;
+
+    dac_init();
+    read_count = dac_next(file_ptr);
+    do
     {
-        execlp("ffplay", "-i", argv[2], "-loop", "4", "-nodisp", NULL);
-        _exit(0);
-    }
-    else
-    {*/
-        signal(SIGINT, terminate);
-
-        map_devices();
-        printf("testing shit\n");
-        init_smi(0, 4,  3,  8,  4);
-
-        gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
-        gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
-
-        smi_cs->clear = 1;
-
-        FILE* file_ptr;
-        size_t read_count;
-        file_ptr = stdin;
-
-        dac_init();
+        dac_start();
+        sleep(100);
         read_count = dac_next(file_ptr);
-        do
-        {
-            dac_start();
-            sleep(100);
-            read_count = dac_next(file_ptr);
-        } while(read_count > 0 && !feof(file_ptr));
+    } while(read_count > 0 && !feof(file_ptr));
 
-        terminate(0);
-        return(0);
-    //}
+    terminate(0);
+    return(0);
 }
 
 void dac_init(void)
@@ -289,7 +276,6 @@ void terminate(int sig)
     unmap_periph_mem(&dma_regs);
     unmap_periph_mem(&gpio_regs);
 
-    system("killall ffplay");
     exit(0);
 }
 
