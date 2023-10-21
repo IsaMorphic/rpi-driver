@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        2002
+#define NSAMPLES        1001
 #define NBUFFERS        125
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
