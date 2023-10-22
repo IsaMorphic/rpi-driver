@@ -225,9 +225,8 @@ size_t dac_next(FILE* file_ptr, int buff_flag)
     }
 
     int cnt = 0;
-    int last_idx = i + NBUFFERS;
-
     int i = buff_flag ? 0 : NBUFFERS;
+    int last_idx = i + NBUFFERS;
     for( ; i < last_idx; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
