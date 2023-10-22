@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1001
+#define NSAMPLES        2002
 #define NBUFFERS        625
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 
     do
     {
-        //clock_gettime(CLOCK_MONOTONIC, &deadline);
+        clock_gettime(CLOCK_MONOTONIC, &deadline);
         dac_next();
 
         deadline.tv_nsec += 100100000;
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
         dac_start();
 
         read_count = buff_next(file_ptr);
-        //clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
