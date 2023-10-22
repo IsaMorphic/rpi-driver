@@ -183,9 +183,8 @@ int main(int argc, char *argv[])
         }
 
         dac_start();
-        read_count = dac_next(file_ptr);
-
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+        read_count = dac_next(file_ptr);
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
