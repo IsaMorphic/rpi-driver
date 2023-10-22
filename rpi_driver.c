@@ -185,10 +185,10 @@ int main(int argc, char *argv[])
             deadline.tv_sec++;
         }
 
-        read_count = dac_next(file_ptr, flipflop);
-        flipflop = !flipflop;
-
+        read_count = dac_next(file_ptr, !flipflop);
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+
+        flipflop = !flipflop;
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
