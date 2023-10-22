@@ -249,8 +249,9 @@ size_t dac_next(FILE* file_ptr, int buff_flag)
 
         for(int j = 0; j < NSAMPLES; j++)
         {
-            txdata[j] = (uint16_t)sample_buff[cnt++ * NSAMPLES + j];
+            txdata[j] = (uint16_t)sample_buff[cnt * NSAMPLES + j];
         }
+        cnt++;
     }
 
     return read_count;
