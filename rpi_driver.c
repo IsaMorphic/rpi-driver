@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
         read_count = dac_next(file_ptr, flipflop);
         flipflop = !flipflop;
-        
+
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
     } while(read_count > 0 && !feof(file_ptr));
 
@@ -255,7 +255,7 @@ size_t dac_next(FILE* file_ptr, int buff_flag)
         cbs[0].tfr_len = NSAMPLES * TX_SAMPLE_SIZE;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp_back, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == NBUFFERS * 2 - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
+        cbs[0].next_cb = i == NBUFFERS * 2 - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i - front_idx + 1]), (&vc_mem[i - front_idx + 1])->virt);
     }
 
     return read_count;
