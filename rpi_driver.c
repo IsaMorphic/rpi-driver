@@ -140,8 +140,8 @@ volatile SMI_DCD_REG *smi_dcd;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
 void dac_init(void);
-void dac_start(int buff_flag);
-size_t dac_next(FILE *file_ptr, int buff_flag);
+void dac_start();
+size_t dac_next(FILE *file_ptr);
 
 void map_devices(void);
 void fail(char *s);
@@ -153,7 +153,6 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int flipflop = 1;
     long int time_difference;
     struct timespec deadline;
 
@@ -183,12 +182,9 @@ int main(int argc, char *argv[])
             deadline.tv_sec++;
         }
 
-        dac_start(flipflop);
-
+        dac_start();
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-        read_count = dac_next(file_ptr, !flipflop);
-
-        //flipflop = !flipflop;
+        read_count = dac_next(file_ptr);
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
