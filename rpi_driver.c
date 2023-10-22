@@ -138,10 +138,11 @@ volatile SMI_DCD_REG *smi_dcd;
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
+size_t buf_next(FILE *file_ptr);
 
 void dac_init(void);
-void dac_start();
-size_t dac_next(FILE *file_ptr);
+void dac_start(void);
+void dac_next(void);
 
 void map_devices(void);
 void fail(char *s);
@@ -171,7 +172,11 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
     dac_init();
-    read_count = dac_next(file_ptr);
+
+    // always call these in pairs, one after the other
+    read_count = buff_next(file_ptr);
+    dac_next();
+
     do
     {
         clock_gettime(CLOCK_MONOTONIC, &deadline);
@@ -183,8 +188,11 @@ int main(int argc, char *argv[])
         }
 
         dac_start();
+
+        read_count = buff_next(file_ptr);
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-        read_count = dac_next(file_ptr);
+
+        dac_next();
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
@@ -226,7 +234,7 @@ void dac_init(void)
     }
 }
 
-size_t dac_next(FILE* file_ptr)
+size_t buff_next(FILE* file_ptr)
 {
     size_t read_count = 0;
     while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS - read_count, file_ptr)) < NSAMPLES * NBUFFERS) 
@@ -234,6 +242,11 @@ size_t dac_next(FILE* file_ptr)
         if(feof(file_ptr)) return read_count;
     }
 
+    return read_count;
+}
+
+void dac_next(void)
+{
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
@@ -245,11 +258,9 @@ size_t dac_next(FILE* file_ptr)
             txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
         }
     }
-
-    return read_count;
 }
 
-void dac_start()
+void dac_start(void)
 {
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
