@@ -153,7 +153,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int flipflop = 0;
+    int flipflop = 1;
     long int time_difference;
     struct timespec deadline;
 
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
-        deadline.tv_nsec += 200000000;
+        deadline.tv_nsec += 195000000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
