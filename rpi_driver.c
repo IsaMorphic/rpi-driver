@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
     dac_init();
-    read_count = dac_next(file_ptr, flipflop);
+    read_count = dac_next(file_ptr);
     do
     {
         clock_gettime(CLOCK_MONOTONIC, &deadline);
