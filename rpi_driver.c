@@ -37,8 +37,8 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        795
-#define NBUFFERS        262
+#define NSAMPLES        4004
+#define NBUFFERS        500
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
         dac_start(flipflop);
 
         clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += 16680000;
+        deadline.tv_nsec += 160160000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
