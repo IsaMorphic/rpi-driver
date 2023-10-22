@@ -37,8 +37,8 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        4004
-#define NBUFFERS        500
+#define NSAMPLES        2002
+#define NBUFFERS        625
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -121,7 +121,7 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 extern MEM_MAP gpio_regs, dma_regs;
 MEM_MAP clk_regs, smi_regs;
 
-MEM_MAP vc_mem[NBUFFERS * 2];
+MEM_MAP vc_mem[NBUFFERS];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     do
     {
         clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += 160000000;
+        deadline.tv_nsec += 100100000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
         read_count = dac_next(file_ptr, !flipflop);
 
-        flipflop = !flipflop;
+        //flipflop = !flipflop;
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
@@ -205,7 +205,7 @@ void dac_init(void)
     for(i = 0; i < DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN + i, GPIO_ALT1);
 
-    for(i = 0; i < NBUFFERS * 2; i++)
+    for(i = 0; i < NBUFFERS; i++)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
@@ -216,7 +216,7 @@ void dac_init(void)
     smi_cs->enable = 1;
 
     enable_dma(DMA_CHAN_A);
-    for(int i = 0; i < NBUFFERS * 2; i++)
+    for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
@@ -226,11 +226,11 @@ void dac_init(void)
         cbs[0].tfr_len = NSAMPLES * TX_SAMPLE_SIZE;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == NBUFFERS * 2 - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
+        cbs[0].next_cb = i == NBUFFERS - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
 }
 
-size_t dac_next(FILE* file_ptr, int buff_flag)
+size_t dac_next(FILE* file_ptr)
 {
     size_t read_count = 0;
     while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS - read_count, file_ptr)) < NSAMPLES * NBUFFERS) 
@@ -238,10 +238,7 @@ size_t dac_next(FILE* file_ptr, int buff_flag)
         if(feof(file_ptr)) return read_count;
     }
 
-    int i = buff_flag ? 0 : NBUFFERS;
-    int last_idx = i + NBUFFERS;
-    int cnt = 0;
-    for( ; i < last_idx; i++)
+    for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
@@ -249,18 +246,16 @@ size_t dac_next(FILE* file_ptr, int buff_flag)
 
         for(int j = 0; j < NSAMPLES; j++)
         {
-            txdata[j] = (uint16_t)sample_buff[cnt * NSAMPLES + j];
+            txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
         }
-        cnt++;
     }
 
     return read_count;
 }
 
-void dac_start(int buff_flag)
+void dac_start()
 {
-    int idx = buff_flag ? 0 : NBUFFERS;
-    start_dma(&vc_mem[idx], DMA_CHAN_A, (DMA_CB*)(&vc_mem[idx])->virt, 0);
+    start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
 }
 
@@ -294,7 +289,7 @@ void terminate(int sig)
     if (smi_regs.virt)
         *REG32(smi_regs, SMI_CS) = 0;
     stop_dma(DMA_CHAN_A);
-    for(i=0; i<NBUFFERS * 2; i++)
+    for(i=0; i<NBUFFERS; i++)
         unmap_periph_mem(&vc_mem[i]);
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
