@@ -37,8 +37,8 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        795
-#define NBUFFERS        263
+#define NSAMPLES        1589
+#define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
-        deadline.tv_nsec += 16670000;
+        deadline.tv_nsec += 66700000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
