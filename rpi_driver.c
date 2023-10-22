@@ -173,9 +173,9 @@ int main(int argc, char *argv[])
 
     dac_init();
     read_count = dac_next(file_ptr);
-    clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
+        clock_gettime(CLOCK_MONOTONIC, &deadline);
         deadline.tv_nsec += 200000000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
