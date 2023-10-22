@@ -186,6 +186,8 @@ int main(int argc, char *argv[])
         }
 
         read_count = dac_next(file_ptr, flipflop);
+        flipflop = !flipflop;
+        
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
     } while(read_count > 0 && !feof(file_ptr));
 
@@ -207,7 +209,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * 2 * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
