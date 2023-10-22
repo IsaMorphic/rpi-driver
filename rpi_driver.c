@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
         dac_start();
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += 33366666;
+            deadline.tv_nsec += 33300000;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
