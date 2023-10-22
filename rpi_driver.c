@@ -134,7 +134,7 @@ volatile SMI_DCS_REG *smi_dcs;
 volatile SMI_DCA_REG *smi_dca;
 volatile SMI_DCD_REG *smi_dcd;
 
-#define TX_SAMPLE_SIZE  4       // Number of raw bytes per sample
+#define TX_SAMPLE_SIZE  2       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
@@ -226,11 +226,11 @@ size_t dac_next(FILE* file_ptr)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
-        uint32_t *txdata = (uint32_t *)(cbs+1);
+        uint16_t *txdata = (uint16_t *)(cbs+1);
 
         for(int j = 0; j < NSAMPLES; j++)
         {
-            txdata[j] = (uint32_t)sample_buff[i * NSAMPLES + j];
+            txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
         }
     }
 
