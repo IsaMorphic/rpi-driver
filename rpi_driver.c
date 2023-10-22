@@ -121,7 +121,7 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 extern MEM_MAP gpio_regs, dma_regs;
 MEM_MAP clk_regs, smi_regs;
 
-MEM_MAP vc_mem[NBUFFERS];
+MEM_MAP vc_mem[NBUFFERS * 2];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -137,7 +137,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  2       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-uint8_t sample_buff[NSAMPLES * NBUFFERS];
+uint8_t sample_buff[NSAMPLES * NBUFFERS * 2];
 
 void dac_init(void);
 void dac_start(void);
