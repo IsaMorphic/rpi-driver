@@ -173,17 +173,17 @@ int main(int argc, char *argv[])
 
     dac_init();
     read_count = dac_next(file_ptr, flipflop);
+    clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
-        dac_start(flipflop);
-
-        clock_gettime(CLOCK_MONOTONIC, &deadline);
         deadline.tv_nsec += 160160000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
             deadline.tv_sec++;
         }
+
+        dac_start(flipflop);
 
         read_count = dac_next(file_ptr, !flipflop);
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
