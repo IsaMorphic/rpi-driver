@@ -138,7 +138,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
-size_t buf_next(FILE *file_ptr);
+size_t buff_next(FILE *file_ptr);
 
 void dac_init(void);
 void dac_start(void);
