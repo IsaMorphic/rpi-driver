@@ -176,10 +176,10 @@ int main(int argc, char *argv[])
 
     do
     {
-        clock_gettime(CLOCK_MONOTONIC, &deadline);
         dac_next();
+        clock_gettime(CLOCK_MONOTONIC, &deadline);
 
-        deadline.tv_nsec += 600600000;
+        deadline.tv_nsec += 585000000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
@@ -210,7 +210,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * 2 * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
