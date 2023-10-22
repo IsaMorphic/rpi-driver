@@ -153,7 +153,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int flipflop = 0;
+    int flipflop = 1;
     long int time_difference;
     struct timespec deadline;
 
