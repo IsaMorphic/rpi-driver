@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 
         dac_start(flipflop);
 
-        read_count = dac_next(file_ptr, !flipflop);
+        read_count = dac_next(file_ptr, flipflop);
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
 
         flipflop = !flipflop;
