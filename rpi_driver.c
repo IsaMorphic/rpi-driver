@@ -205,7 +205,7 @@ void dac_init(void)
     for(i = 0; i < DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN + i, GPIO_ALT1);
 
-    for(i = 0; i < NBUFFERS; i++)
+    for(i = 0; i < NBUFFERS * 2; i++)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
