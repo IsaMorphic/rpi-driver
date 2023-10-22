@@ -173,9 +173,9 @@ int main(int argc, char *argv[])
 
     dac_init();
     read_count = dac_next(file_ptr, flipflop);
-    clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
+        clock_gettime(CLOCK_MONOTONIC, &deadline);
         deadline.tv_nsec += 160160000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
@@ -294,7 +294,7 @@ void terminate(int sig)
     if (smi_regs.virt)
         *REG32(smi_regs, SMI_CS) = 0;
     stop_dma(DMA_CHAN_A);
-    for(i=0; i<NBUFFERS; i++)
+    for(i=0; i<NBUFFERS * 2; i++)
         unmap_periph_mem(&vc_mem[i]);
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
