@@ -140,7 +140,7 @@ volatile SMI_DCD_REG *smi_dcd;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 
 void dac_init(void);
-void dac_start(void);
+void dac_start(int buff_flag);
 size_t dac_next(FILE *file_ptr, int buff_flag);
 
 void map_devices(void);
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     read_count = dac_next(file_ptr, flipflop);
     do
     {
-        dac_start();
+        dac_start(flipflop);
 
         clock_gettime(CLOCK_MONOTONIC, &deadline);
         deadline.tv_nsec += 16680000;
@@ -216,6 +216,18 @@ void dac_init(void)
     smi_cs->enable = 1;
 
     enable_dma(DMA_CHAN_A);
+    for(int i = 0; i < NBUFFERS * 2; i++)
+    {
+        MEM_MAP *mp = &vc_mem[i];
+        DMA_CB *cbs = mp->virt;
+        uint8_t *txdata = (uint8_t *)(cbs+1);
+
+        cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
+        cbs[0].tfr_len = NSAMPLES * TX_SAMPLE_SIZE;
+        cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
+        cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
+        cbs[0].next_cb = i == NBUFFERS * 2 - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
+    }
 }
 
 size_t dac_next(FILE* file_ptr, int buff_flag)
@@ -226,9 +238,9 @@ size_t dac_next(FILE* file_ptr, int buff_flag)
         if(feof(file_ptr)) return read_count;
     }
 
-    int cnt = 0;
     int i = buff_flag ? 0 : NBUFFERS;
     int last_idx = i + NBUFFERS;
+    int cnt = 0;
     for( ; i < last_idx; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
@@ -242,28 +254,13 @@ size_t dac_next(FILE* file_ptr, int buff_flag)
         cnt++;
     }
 
-    int front_idx = i = buff_flag ? 0 : NBUFFERS;
-    for( ; i < last_idx; i++)
-    {
-        MEM_MAP *mp = &vc_mem[i - front_idx];
-        DMA_CB *cbs = mp->virt;
-        uint16_t *txdata = (uint16_t *)(cbs+1);
-        
-        MEM_MAP *mp_back = &vc_mem[i];
-
-        cbs[0].ti = DMA_DEST_DREQ | (DMA_SMI_DREQ << 16) | DMA_CB_SRCE_INC;
-        cbs[0].tfr_len = NSAMPLES * TX_SAMPLE_SIZE;
-        cbs[0].srce_ad = MEM_BUS_ADDR(mp_back, txdata);
-        cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == NBUFFERS * 2 - 1 ? MEM_BUS_ADDR((&vc_mem[0]), (&vc_mem[0])->virt) : MEM_BUS_ADDR((&vc_mem[i - front_idx + 1]), (&vc_mem[i - front_idx + 1])->virt);
-    }
-
     return read_count;
 }
 
-void dac_start(void)
+void dac_start(int buff_flag)
 {
-    start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
+    int idx = buff_flag ? 0 : NBUFFERS;
+    start_dma(&vc_mem[idx], DMA_CHAN_A, (DMA_CB*)(&vc_mem[idx])->virt, 0);
     smi_cs->start = 1;
 }
 
