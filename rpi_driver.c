@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
         clock_gettime(CLOCK_MONOTONIC, &deadline);
         dac_next();
 
-        deadline.tv_nsec += 300300000;
+        deadline.tv_nsec += 290000000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
