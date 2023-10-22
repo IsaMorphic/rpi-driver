@@ -37,8 +37,8 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        4004
-#define NBUFFERS        625
+#define NSAMPLES        1001
+#define NBUFFERS        125
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -172,20 +172,23 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
     dac_init();
-    read_count = dac_next(file_ptr);
+    read_count = dac_next(file_ptr, flipflop = !flipflop);
     do
     {
         clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += 200200000;
+        deadline.tv_nsec += 10010000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
             deadline.tv_sec++;
         }
 
-        dac_start();
+        if(!flipflop)
+        {
+            dac_start();
+        }
+        read_count = dac_next(file_ptr, flipflop = !flipflop);
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-        read_count = dac_next(file_ptr);
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
@@ -206,14 +209,14 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * 2 * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
     smi_cs->enable = 1;
 
     enable_dma(DMA_CHAN_A);
-    for(int i = 0; i < NBUFFERS; i++)
+    for(int i = 0; i < NBUFFERS * 2; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
@@ -227,14 +230,17 @@ void dac_init(void)
     }
 }
 
-size_t dac_next(FILE* file_ptr)
+size_t dac_next(FILE* file_ptr, int buff_flag)
 {
     size_t read_count = 0;
     while ((read_count += fread(sample_buff + read_count, sizeof(uint8_t), NSAMPLES * NBUFFERS - read_count, file_ptr)) < NSAMPLES * NBUFFERS) 
     {
         if(feof(file_ptr)) return read_count;
     }
-    for(int i = 0; i < NBUFFERS; i++)
+
+    int i = buff_flag ? 0 : NBUFFERS;
+    int last_idx = i + NBUFFERS;
+    for( ; i < last_idx; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
