@@ -153,6 +153,10 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
+    int parity_flag, frame_num;
+    long int time_difference;
+    struct timespec deadline;
+
     signal(SIGINT, terminate);
 
     map_devices();
@@ -172,8 +176,19 @@ int main(int argc, char *argv[])
     do
     {
         dac_start();
-        usleep(12750);
-        read_count = dac_next(file_ptr);
+        for(frame_num = 0; frame_num < NFRAMES; frame_num++)
+        {
+            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 78;
+            if(deadline.tv_nsec >= 1000000000) 
+            {  
+                deadline.tv_nsec -= 1000000000;
+                deadline.tv_sec++;
+            }
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+            
+            read_count = dac_next(file_ptr);
+            parity_flag = !parity_flag;
+        }
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
