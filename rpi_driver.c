@@ -154,6 +154,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
+    int flipflop = 0;
     long int time_difference;
     struct timespec deadline;
 
@@ -172,14 +173,9 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
     dac_init();
-    read_count = buff_next(file_ptr);
-    dac_next();
-
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
-        dac_start();
-
         read_count = buff_next(file_ptr);
         dac_next();
 
@@ -189,7 +185,9 @@ int main(int argc, char *argv[])
             deadline.tv_nsec -= 1000000000;
             deadline.tv_sec++;
         }
+
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+        if (flipflop = !flipflop) dac_start();
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
