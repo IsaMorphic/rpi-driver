@@ -154,14 +154,15 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 void *do_smth_periodically(void *data)
 {
-  int interval = *(int *)data;
-  for (;;) {
-    
-    read_count = buff_next(file_ptr);
-    dac_next();
+    int read_count;
+    int interval = *(int *)data;
+    while() {
 
-    usleep(interval);
-  }
+        read_count = buff_next(stdin);
+        dac_next();
+
+        usleep(interval);
+    }
 }
 
 
@@ -182,19 +183,12 @@ int main(int argc, char *argv[])
 
     smi_cs->clear = 1;
 
-    FILE* file_ptr;
-    size_t read_count;
-    file_ptr = stdin;
-
-
     pthread_t thread;
     int interval = 5000;
-
     pthread_create(&thread, NULL, do_smth_periodically, &interval)
 
     dac_init();
-
-    while(read_count > 0 && !feof(file_ptr))
+    while(true)
     {
         dac_start();
         usleep(33300);
