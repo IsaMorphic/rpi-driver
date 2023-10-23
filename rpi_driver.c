@@ -183,17 +183,17 @@ int main(int argc, char *argv[])
 
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 79;
+            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 80;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
                 deadline.tv_sec++;
             }
+
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-
             read_count = buff_next(file_ptr);
-            if(read_count == 0) break;
 
+            if(read_count == 0) break;
             parity_flag = !parity_flag;
         }
     } while(read_count > 0 && !feof(file_ptr));
