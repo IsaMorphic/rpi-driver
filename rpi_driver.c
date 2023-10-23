@@ -135,7 +135,7 @@ volatile SMI_DCS_REG *smi_dcs;
 volatile SMI_DCA_REG *smi_dca;
 volatile SMI_DCD_REG *smi_dcd;
 
-#define TX_SAMPLE_SIZE  1      // Number of raw bytes per sample
+#define TX_SAMPLE_SIZE  2       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
@@ -143,6 +143,7 @@ size_t buff_next(FILE *file_ptr);
 
 void dac_init(void);
 void dac_start(void);
+void dac_next(void);
 
 void map_devices(void);
 void fail(char *s);
@@ -161,7 +162,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, terminate);
 
     map_devices();
-    init_smi(0, 12, 5, 10, 5);
+    init_smi(0, 6, 5, 10, 5);
 
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -176,23 +177,26 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     read_count = buff_next(file_ptr);
+    dac_next();
 
     do
     {
-        dac_start();
-
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += NSAMPLES * NBUFFERS * 78;
+            deadline.tv_nsec += NSAMPLES * NBUFFERS * 79;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
                 deadline.tv_sec++;
             }
 
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             read_count = buff_next(file_ptr);
             if(read_count == 0) break;
+            
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+
+            dac_next();
+            dac_start();
         }
     } while(read_count > 0 && !feof(file_ptr));
 
@@ -243,15 +247,22 @@ size_t buff_next(FILE* file_ptr)
         if(feof(file_ptr)) return read_count;
     }
 
+    return read_count;
+}
+
+void dac_next(void) 
+{
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
-        uint8_t *txdata = (uint8_t *)(cbs+1);
-        memcpy(txdata, sample_buff, NSAMPLES);
-    }
+        uint16_t *txdata = (uint16_t *)(cbs+1);
 
-    return read_count;
+        for(int j = 0; j < NSAMPLES; j++)
+        {
+            txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
+        }
+    }
 }
 
 void dac_start(void)
