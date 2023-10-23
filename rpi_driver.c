@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <pthread.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
@@ -151,6 +152,19 @@ void init_smi(int width, int ns, int setup, int hold, int strobe);
 void disp_smi(void);
 void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
+void *do_smth_periodically(void *data)
+{
+  int interval = *(int *)data;
+  for (;;) {
+    
+    read_count = buff_next(file_ptr);
+    dac_next();
+
+    usleep(interval);
+  }
+}
+
+
 int main(int argc, char *argv[])
 {
     int frame_num;
@@ -173,18 +187,17 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
 
+    pthread_t thread;
+    int interval = 5000;
+
+    pthread_create(&thread, NULL, do_smth_periodically, &interval)
+
     dac_init();
 
-    read_count = buff_next(file_ptr);
-    dac_next();
-    
     while(read_count > 0 && !feof(file_ptr))
     {
         dac_start();
-
         usleep(33300);
-
-        //read_count = buff_next(file_ptr);
     }
 
     terminate(0);
