@@ -178,13 +178,14 @@ int main(int argc, char *argv[])
     read_count = buff_next(file_ptr);
     dac_next();
 
-    clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
+        clock_gettime(CLOCK_MONOTONIC, &deadline);
         dac_start();
+
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 80;
+            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 78;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
