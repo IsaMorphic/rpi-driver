@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
         
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 100;
+            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 79;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 
             parity_flag = !parity_flag;
         }
-    } while(read_count > 0 && !feof(file_ptr));
+    } while(!feof(file_ptr));
 
     terminate(0);
     return(0);
