@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        14300
+#define NSAMPLES        795
 #define NBUFFERS        525
 #define NFRAMES         1
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += NSAMPLES * NBUFFERS * 79;
+            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 79;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
