@@ -180,11 +180,12 @@ int main(int argc, char *argv[])
 
     do
     {
+        dac_next();
         dac_start();
 
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 79;
+            deadline.tv_nsec += NSAMPLES * NBUFFERS * 80;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
@@ -195,8 +196,6 @@ int main(int argc, char *argv[])
             if(read_count == 0) break;
 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-            dac_next();
-            
             parity_flag = !parity_flag;
         }
     } while(read_count > 0 && !feof(file_ptr));
