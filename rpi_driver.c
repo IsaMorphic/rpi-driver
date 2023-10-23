@@ -179,18 +179,18 @@ int main(int argc, char *argv[])
     read_count = buff_next(file_ptr);
     while(read_count > 0 && !feof(file_ptr))
     {
-        dac_next();
-        dac_start();
-
         deadline.tv_nsec += NSAMPLES * NBUFFERS * 79;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
             deadline.tv_sec++;
         }
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+        
+        dac_next();
+        dac_start();
 
         read_count = buff_next(file_ptr);
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
     }
 
     terminate(0);
