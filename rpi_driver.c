@@ -139,6 +139,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
 pthread_t thread;
+int lock_flag;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
 
@@ -161,11 +162,10 @@ void *do_smth_periodically(void *data)
     read_count = buff_next(stdin);
     while(read_count > 0 && !feof(stdin)) 
     {    
-        dac_next();
-
         usleep(interval);
 
         read_count = buff_next(stdin);
+        lock_flag = 1;
     }
 }
 
@@ -194,8 +194,16 @@ int main(int argc, char *argv[])
 
     for(;;)
     {
-        dac_start();
-        usleep(33366);
+        if(lock_flag)
+        {
+            dac_next();
+            lock_flag = 0;
+        }
+        else
+        {
+            dac_start();
+            usleep(33366);
+        }
     }
 
     terminate(0);
