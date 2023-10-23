@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        795
+#define NSAMPLES        22880
 #define NBUFFERS        525
 #define NFRAMES         1
 
