@@ -172,9 +172,9 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
     dac_init();
-    clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
+        clock_gettime(CLOCK_MONOTONIC, &deadline);
         deadline.tv_nsec += 603500000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
