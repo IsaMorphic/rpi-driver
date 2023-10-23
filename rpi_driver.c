@@ -40,7 +40,7 @@
 
 #define NSAMPLES        795
 #define NBUFFERS        525
-#define NFRAMES         9
+#define NFRAMES         1
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -209,7 +209,6 @@ int main(int argc, char *argv[])
             // Creating a new thread 
             pthread_create(&ptid, NULL, &func, NULL); 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-            pthread_join(ptid, NULL);
 
             parity_flag = !parity_flag;
         }
