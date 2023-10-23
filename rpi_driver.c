@@ -138,6 +138,7 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  2       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
+pthread_t thread;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
 
@@ -188,14 +189,13 @@ int main(int argc, char *argv[])
 
     dac_init();
 
-    pthread_t thread;
-    int interval = 5000000;
+    int interval = 33366;
     pthread_create(&thread, NULL, do_smth_periodically, &interval);
 
     for(;;)
     {
         dac_start();
-        usleep(33300);
+        usleep(33366);
     }
 
     terminate(0);
@@ -293,6 +293,8 @@ void terminate(int sig)
     int i;
 
     printf("Closing\n");
+    pthread_cancel(thread);
+    
     disp_reg_fields(smi_cs_regstrs, "CS", *REG32(smi_regs, SMI_CS));
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_IN);
