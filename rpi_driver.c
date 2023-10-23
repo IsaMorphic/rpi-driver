@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     for(;;)
     {
         dac_start();
-        usleep(33000);
+        usleep(33366);
     }
 
     terminate(0);
