@@ -39,7 +39,6 @@
 
 #define NSAMPLES        22880
 #define NBUFFERS        525
-#define NFRAMES         3
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -175,10 +174,8 @@ int main(int argc, char *argv[])
 
     dac_init();
 
-    clock_gettime(CLOCK_MONOTONIC, &deadline);
     read_count = buff_next(file_ptr);
     dac_next();
-
     do
     {
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
@@ -193,7 +190,7 @@ int main(int argc, char *argv[])
             read_count = buff_next(file_ptr);
             if(read_count == 0) break;
             
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+            usleep(960000)
 
             dac_next();
             dac_start();
