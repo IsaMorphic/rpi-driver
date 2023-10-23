@@ -248,7 +248,7 @@ size_t buff_next(FILE* file_ptr)
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
         uint8_t *txdata = (uint8_t *)(cbs+1);
-        memcpy(txdata, sample_buff, read_count);
+        memcpy(txdata, sample_buff, NSAMPLES);
     }
 
     return read_count;
