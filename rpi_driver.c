@@ -154,7 +154,7 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    int frame_num, parity_flag;
+    int frame_num;
     struct timespec deadline;
     
     pthread_t ptid; 
@@ -196,7 +196,6 @@ int main(int argc, char *argv[])
             if(read_count == 0) break;
 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-            parity_flag = !parity_flag;
         }
     } while(read_count > 0 && !feof(file_ptr));
 
