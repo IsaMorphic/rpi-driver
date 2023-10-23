@@ -38,7 +38,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        1590
+#define NSAMPLES        795
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -164,11 +164,8 @@ void *do_smth_periodically(void *data)
     {    
         usleep(interval);
 
-        if(!lock_flag)
-        {
-            read_count = buff_next(stdin);
-            lock_flag = 1;
-        }
+        read_count = buff_next(stdin);
+        lock_flag = 1;
     }
 }
 
@@ -205,7 +202,7 @@ int main(int argc, char *argv[])
         else
         {
             dac_start();
-            usleep(66733);
+            usleep(33366);
         }
     }
 
