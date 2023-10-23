@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
         dac_start();
         
         clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += NSAMPLES * NBUFFERS * 50;
+        deadline.tv_nsec += NSAMPLES * NBUFFERS * 40;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
