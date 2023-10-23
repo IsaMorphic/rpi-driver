@@ -38,7 +38,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        794
+#define NSAMPLES        795
 #define NBUFFERS        525
 #define NFRAMES         1
 
@@ -192,11 +192,11 @@ int main(int argc, char *argv[])
     read_count = buff_next(file_ptr);
     dac_next();
 
-    clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
         dac_start();
         
+        clock_gettime(CLOCK_MONOTONIC, &deadline);    
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
             deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 79;
