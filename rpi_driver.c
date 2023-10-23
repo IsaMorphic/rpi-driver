@@ -173,9 +173,9 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
     dac_init();
+    clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
-        clock_gettime(CLOCK_MONOTONIC, &deadline);
         read_count = buff_next(file_ptr);
         dac_next();
 
