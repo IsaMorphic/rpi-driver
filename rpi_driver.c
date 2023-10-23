@@ -161,7 +161,10 @@ void *do_smth_periodically(void *data)
     read_count = buff_next(stdin);
     while(read_count > 0 && !feof(stdin)) 
     {    
+        dac_next();
+
         usleep(interval);
+
         read_count = buff_next(stdin);
     }
 }
@@ -191,9 +194,8 @@ int main(int argc, char *argv[])
 
     for(;;)
     {
-        dac_next();
         dac_start();
-        usleep(30000);
+        usleep(33366);
     }
 
     terminate(0);
@@ -214,7 +216,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * 2 * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
