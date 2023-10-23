@@ -174,7 +174,10 @@ int main(int argc, char *argv[])
     file_ptr = stdin;
 
     dac_init();
-    read_count = dac_next(file_ptr);
+
+    read_count = buff_next(file_ptr);
+    dac_next();
+    
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
@@ -191,7 +194,7 @@ int main(int argc, char *argv[])
             read_count = buff_next(file_ptr);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             dac_next();
-            
+
             parity_flag = !parity_flag;
         }
     } while(read_count > 0 && !feof(file_ptr));
