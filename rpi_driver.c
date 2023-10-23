@@ -191,7 +191,8 @@ int main(int argc, char *argv[])
                 deadline.tv_nsec -= 1000000000;
                 deadline.tv_sec++;
             }
-
+            
+            read_count = buff_next(file_ptr);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             parity_flag = !parity_flag;
         }
