@@ -307,8 +307,7 @@ void terminate(int sig)
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
     unmap_periph_mem(&gpio_regs);
-
-    pthread_exit(NULL); 
+    
     exit(0);
 }
 
