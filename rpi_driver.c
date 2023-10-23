@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
         dac_start();
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 80 - 150000;
+            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 80 - 160000;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
@@ -217,7 +217,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * (NFRAMES - 1) * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * (NFRAMES + 1) * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
