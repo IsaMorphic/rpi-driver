@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     do
     {
         clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += 10195000;
+        deadline.tv_nsec += 10215000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
