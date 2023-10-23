@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
-#include <pthread.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
@@ -153,20 +152,6 @@ void init_smi(int width, int ns, int setup, int hold, int strobe);
 void disp_smi(void);
 void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
-
-void* func(void* arg) 
-{ 
-    // detach the current thread 
-    // from the calling thread 
-    pthread_detach(pthread_self()); 
-  
-    buff_next(stdin);
-    dac_next();
-  
-    // exit the current thread 
-    pthread_exit(NULL); 
-} 
-
 int main(int argc, char *argv[])
 {
     int frame_num, parity_flag;
@@ -200,17 +185,17 @@ int main(int argc, char *argv[])
 
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
-            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 80;
+            deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 78;
             if(deadline.tv_nsec >= 1000000000) 
             {  
                 deadline.tv_nsec -= 1000000000;
                 deadline.tv_sec++;
             }
-  
-            // Creating a new thread 
-            pthread_create(&ptid, NULL, &func, NULL); 
+
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-            pthread_join(ptid, NULL);
+
+            read_count = buff_next(file_ptr);
+            dac_next();
 
             parity_flag = !parity_flag;
         }
