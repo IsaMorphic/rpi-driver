@@ -178,23 +178,13 @@ int main(int argc, char *argv[])
     dac_next();
     do
     {
-        for(frame_num = 0; frame_num < NFRAMES; frame_num++)
-        {
-            deadline.tv_nsec += NSAMPLES * NBUFFERS * 79;
-            if(deadline.tv_nsec >= 1000000000) 
-            {  
-                deadline.tv_nsec -= 1000000000;
-                deadline.tv_sec++;
-            }
+        read_count = buff_next(file_ptr);
+        if(read_count == 0) break;
+        
+        usleep(960000)
 
-            read_count = buff_next(file_ptr);
-            if(read_count == 0) break;
-            
-            usleep(960000)
-
-            dac_next();
-            dac_start();
-        }
+        dac_next();
+        dac_start();
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
