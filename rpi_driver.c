@@ -39,7 +39,7 @@
 
 #define NSAMPLES        795
 #define NBUFFERS        525
-#define NFRAMES         1
+#define NFRAMES         3
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -181,6 +181,8 @@ int main(int argc, char *argv[])
 
     do
     {
+        dac_start();
+        
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
             deadline.tv_nsec += NSAMPLES * NBUFFERS * 79;
@@ -194,9 +196,7 @@ int main(int argc, char *argv[])
             if(read_count == 0) break;
 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-
             dac_next();
-            dac_start();
         }
     } while(read_count > 0 && !feof(file_ptr));
 
