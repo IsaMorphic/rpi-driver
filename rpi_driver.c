@@ -156,12 +156,15 @@ void *do_smth_periodically(void *data)
 {
     int read_count;
     int interval = *(int *)data;
-    while() {
 
-        read_count = buff_next(stdin);
+    read_count = buff_next(stdin);
+    while(read_count > 0 && !feof(stdin)) 
+    {    
         dac_next();
 
         usleep(interval);
+        
+        read_count = buff_next(stdin);
     }
 }
 
