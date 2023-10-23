@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 
     read_count = buff_next(file_ptr);
     dac_next();
-
+    
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
@@ -209,6 +209,7 @@ int main(int argc, char *argv[])
             // Creating a new thread 
             pthread_create(&ptid, NULL, &func, NULL); 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+            pthread_join(ptid, NULL);
 
             parity_flag = !parity_flag;
         }
