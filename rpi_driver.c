@@ -174,17 +174,24 @@ int main(int argc, char *argv[])
 
     dac_init();
 
+    clock_gettime(CLOCK_MONOTONIC, &deadline);
     read_count = buff_next(file_ptr);
-    dac_next();
+
     do
     {
-        read_count = buff_next(file_ptr);
-        if(read_count == 0) break;
-        
-        usleep(500000);
-
         dac_next();
         dac_start();
+        
+        deadline.tv_nsec += NSAMPLES * NBUFFERS * 80;
+        if(deadline.tv_nsec >= 1000000000) 
+        {  
+            deadline.tv_nsec -= 1000000000;
+            deadline.tv_sec++;
+        }
+
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+        read_count = buff_next(file_ptr);
+        
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
@@ -205,7 +212,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * (NFRAMES + 1) * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
