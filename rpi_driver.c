@@ -163,7 +163,7 @@ void *do_smth_periodically(void *data)
         dac_next();
 
         usleep(interval);
-        
+
         read_count = buff_next(stdin);
     }
 }
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     pthread_create(&thread, NULL, do_smth_periodically, &interval);
 
     dac_init();
-    while(true)
+    for(;;)
     {
         dac_start();
         usleep(33300);
