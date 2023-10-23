@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     for(;;)
     {
         dac_start();
-        usleep(33366);
+        sleep(1000);
     }
 
     terminate(0);
@@ -216,7 +216,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * 30 * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
@@ -294,7 +294,7 @@ void terminate(int sig)
 
     printf("Closing\n");
     pthread_cancel(thread);
-    
+
     disp_reg_fields(smi_cs_regstrs, "CS", *REG32(smi_regs, SMI_CS));
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_IN);
