@@ -38,7 +38,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        795
+#define NSAMPLES        7150
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     for(;;)
     {
         dac_start();
-        usleep(33366);
+        usleep(300300);
     }
 
     terminate(0);
