@@ -180,7 +180,6 @@ int main(int argc, char *argv[])
 
     do
     {
-        dac_next();
         dac_start();
 
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
@@ -196,6 +195,7 @@ int main(int argc, char *argv[])
             if(read_count == 0) break;
 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+            dac_next();
         }
     } while(read_count > 0 && !feof(file_ptr));
 
