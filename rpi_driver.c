@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 
     pthread_t thread;
     int interval = 5000;
-    pthread_create(&thread, NULL, do_smth_periodically, &interval)
+    pthread_create(&thread, NULL, do_smth_periodically, &interval);
 
     dac_init();
     while(true)
