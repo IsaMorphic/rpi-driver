@@ -37,9 +37,9 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        22880
+#define NSAMPLES        7150
 #define NBUFFERS        525
-#define NFRAMES         1
+#define NFRAMES         3
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
