@@ -161,6 +161,7 @@ void* func(void* arg)
     pthread_detach(pthread_self()); 
   
     buff_next(stdin);
+    dac_next();
   
     // exit the current thread 
     pthread_exit(NULL); 
