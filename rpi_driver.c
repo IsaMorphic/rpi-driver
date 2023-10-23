@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <pthread.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
@@ -153,11 +154,24 @@ void disp_smi(void);
 void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 
+void* func(void* arg) 
+{ 
+    // detach the current thread 
+    // from the calling thread 
+    pthread_detach(pthread_self()); 
+  
+    buff_next(stdin);
+  
+    // exit the current thread 
+    pthread_exit(NULL); 
+} 
+
 int main(int argc, char *argv[])
 {
     int frame_num, parity_flag;
-    long int time_difference;
     struct timespec deadline;
+    
+    pthread_t ptid; 
 
     signal(SIGINT, terminate);
 
@@ -176,8 +190,6 @@ int main(int argc, char *argv[])
     dac_init();
 
     read_count = buff_next(file_ptr);
-    read_count = buff_next(file_ptr);
-    read_count = buff_next(file_ptr);
     dac_next();
 
     clock_gettime(CLOCK_MONOTONIC, &deadline);
@@ -193,8 +205,9 @@ int main(int argc, char *argv[])
                 deadline.tv_nsec -= 1000000000;
                 deadline.tv_sec++;
             }
-            
-            //read_count = buff_next(file_ptr);
+  
+            // Creating a new thread 
+            pthread_create(&ptid, NULL, &func, NULL); 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             parity_flag = !parity_flag;
         }
@@ -307,6 +320,7 @@ void terminate(int sig)
     unmap_periph_mem(&dma_regs);
     unmap_periph_mem(&gpio_regs);
 
+    pthread_exit(NULL); 
     exit(0);
 }
 
