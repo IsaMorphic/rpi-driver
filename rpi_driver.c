@@ -39,7 +39,7 @@
 
 #define NSAMPLES        795
 #define NBUFFERS        525
-#define NFRAMES         30
+#define NFRAMES         3
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
 #define SMI_CS      0x00    // Control & status
@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     read_count = buff_next(file_ptr);
+    dac_next();
 
     do
     {
