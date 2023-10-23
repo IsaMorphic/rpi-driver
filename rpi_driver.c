@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, terminate);
 
     map_devices();
-    init_smi(0, 6, 5, 10, 5);
+    init_smi(0, 8, 3, 8, 4);
 
     gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
     gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
@@ -174,8 +174,8 @@ int main(int argc, char *argv[])
     dac_init();
     do
     {
-        clock_gettime(CLOCK_REALTIME, &deadline);
-        deadline.tv_nsec += 212500000;
+        clock_gettime(CLOCK_MONOTONIC, &deadline);
+        deadline.tv_nsec += 21250000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
         }
 
         read_count = buff_next(file_ptr);
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &deadline, NULL);
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
 
         dac_next();
         dac_start();
@@ -207,7 +207,7 @@ void dac_init(void)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
-    smi_l->len = NSAMPLES * NBUFFERS * 10 * TX_SAMPLE_SIZE;
+    smi_l->len = NSAMPLES * NBUFFERS * 2 * TX_SAMPLE_SIZE;
     smi_dmc->dmaen = 1;
     smi_cs->clear = 1;
     smi_cs->write = 1;
