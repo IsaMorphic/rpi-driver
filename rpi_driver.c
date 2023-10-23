@@ -38,7 +38,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        7150
+#define NSAMPLES        795
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -189,13 +189,13 @@ int main(int argc, char *argv[])
 
     dac_init();
 
-    int interval = 1001000;
+    int interval = 62500;
     pthread_create(&thread, NULL, do_smth_periodically, &interval);
 
     for(;;)
     {
         dac_start();
-        usleep(300300);
+        usleep(33366);
     }
 
     terminate(0);
