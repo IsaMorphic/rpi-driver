@@ -189,13 +189,13 @@ int main(int argc, char *argv[])
 
     dac_init();
 
-    int interval = 1000000;
+    int interval = 125000;
     pthread_create(&thread, NULL, do_smth_periodically, &interval);
 
     for(;;)
     {
         dac_start();
-        usleep(33366);
+        usleep(33000);
     }
 
     terminate(0);
