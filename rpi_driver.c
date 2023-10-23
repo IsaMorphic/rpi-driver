@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        7150
+#define NSAMPLES        795
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     do
     {
         clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += 300300000;
+        deadline.tv_nsec += 33390000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
@@ -184,10 +184,10 @@ int main(int argc, char *argv[])
         }
 
         read_count = buff_next(file_ptr);
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-
         dac_next();
-        if (flipflop = !flipflop) dac_start();
+        
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+        dac_start();
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
@@ -257,7 +257,7 @@ void dac_next(void)
 
 void dac_start(void)
 {
-    start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
+    start_dma(&vc_mem[NBUFFERS - 20], DMA_CHAN_A, (DMA_CB*)(&vc_mem[NBUFFERS - 20])->virt, 0);
     smi_cs->start = 1;
 }
 
