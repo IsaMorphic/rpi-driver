@@ -178,18 +178,18 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &deadline);
     do
     {
+        dac_start();
+
+        read_count = buff_next(file_ptr);
+        dac_next();
+
         deadline.tv_nsec += 600600000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
             deadline.tv_sec++;
         }
-
-        dac_start();
-        read_count = buff_next(file_ptr);
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-
-        dac_next();
     } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
