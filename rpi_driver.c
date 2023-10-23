@@ -161,10 +161,7 @@ void *do_smth_periodically(void *data)
     read_count = buff_next(stdin);
     while(read_count > 0 && !feof(stdin)) 
     {    
-        dac_next();
-
         usleep(interval);
-
         read_count = buff_next(stdin);
     }
 }
@@ -194,8 +191,9 @@ int main(int argc, char *argv[])
 
     for(;;)
     {
+        dac_next();
         dac_start();
-        usleep(33366);
+        usleep(33000);
     }
 
     terminate(0);
