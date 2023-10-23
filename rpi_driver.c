@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
     do
     {
         dac_start();
-
+        
         for(frame_num = 0; frame_num < NFRAMES; frame_num++)
         {
             deadline.tv_nsec += (NSAMPLES - parity_flag) * NBUFFERS * 80;
@@ -194,9 +194,6 @@ int main(int argc, char *argv[])
 
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             parity_flag = !parity_flag;
-
-            read_count = buff_next(file_ptr);
-            dac_next();
         }
     } while(read_count > 0 && !feof(file_ptr));
 
