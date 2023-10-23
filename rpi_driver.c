@@ -199,11 +199,9 @@ int main(int argc, char *argv[])
             dac_next();
             lock_flag = 0;
         }
-        else
-        {
-            dac_start();
-            usleep(33366);
-        }
+        
+        dac_start();
+        usleep(33366);        
     }
 
     terminate(0);
