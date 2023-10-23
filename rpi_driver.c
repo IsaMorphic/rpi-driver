@@ -186,11 +186,12 @@ int main(int argc, char *argv[])
 
     smi_cs->clear = 1;
 
+    dac_init();
+
     pthread_t thread;
     int interval = 5000;
     pthread_create(&thread, NULL, do_smth_periodically, &interval);
-
-    dac_init();
+    
     for(;;)
     {
         dac_start();
