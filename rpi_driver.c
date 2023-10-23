@@ -192,9 +192,8 @@ int main(int argc, char *argv[])
                 deadline.tv_sec++;
             }
 
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-
             read_count = buff_next(file_ptr);
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             dac_next();
 
             parity_flag = !parity_flag;
