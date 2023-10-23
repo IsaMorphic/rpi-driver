@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        14300
+#define NSAMPLES        795
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
         read_count = buff_next(file_ptr);
         dac_next();
 
-        deadline.tv_nsec += 600600000;
+        deadline.tv_nsec += 33390000;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
