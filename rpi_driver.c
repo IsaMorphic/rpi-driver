@@ -143,7 +143,6 @@ size_t buff_next(FILE *file_ptr);
 
 void dac_init(void);
 void dac_start(void);
-void dac_next(void);
 
 void map_devices(void);
 void fail(char *s);
