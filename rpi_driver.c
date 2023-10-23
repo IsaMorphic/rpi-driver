@@ -172,27 +172,26 @@ int main(int argc, char *argv[])
     size_t read_count;
     file_ptr = stdin;
 
+
     dac_init();
-
     clock_gettime(CLOCK_MONOTONIC, &deadline);
-    read_count = buff_next(file_ptr);
 
-    do
+    read_count = buff_next(file_ptr);
+    while(read_count > 0 && !feof(file_ptr))
     {
         dac_next();
         dac_start();
         
+        read_count = buff_next(file_ptr);
+
         deadline.tv_nsec += NSAMPLES * NBUFFERS * 80;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
             deadline.tv_sec++;
         }
-
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-        read_count = buff_next(file_ptr);
-
-    } while(read_count > 0 && !feof(file_ptr));
+    }
 
     terminate(0);
     return(0);
