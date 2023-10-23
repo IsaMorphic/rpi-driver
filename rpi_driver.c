@@ -181,15 +181,15 @@ int main(int argc, char *argv[])
         dac_start();
         
         clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += NSAMPLES * NBUFFERS * 40;
+        deadline.tv_nsec += NSAMPLES * NBUFFERS * 79;
         if(deadline.tv_nsec >= 1000000000) 
         {  
             deadline.tv_nsec -= 1000000000;
             deadline.tv_sec++;
         }
 
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
         read_count = buff_next(file_ptr);
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
     }
 
     terminate(0);
