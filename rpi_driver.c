@@ -257,7 +257,7 @@ void dac_next(void)
 
 void dac_start(void)
 {
-    start_dma(&vc_mem[NBUFFERS - 20], DMA_CHAN_A, (DMA_CB*)(&vc_mem[NBUFFERS - 20])->virt, 0);
+    start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
 }
 
