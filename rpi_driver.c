@@ -192,13 +192,13 @@ int main(int argc, char *argv[])
                 deadline.tv_sec++;
             }
 
-            read_count = buff_next(file_ptr);
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
-            dac_next();
+            read_count = buff_next(file_ptr);
+            if(read_count == 0) break;
 
             parity_flag = !parity_flag;
         }
-    } while(!feof(file_ptr));
+    } while(read_count > 0 && !feof(file_ptr));
 
     terminate(0);
     return(0);
@@ -247,11 +247,6 @@ size_t buff_next(FILE* file_ptr)
         if(feof(file_ptr)) return read_count;
     }
 
-    return read_count;
-}
-
-void dac_next(void)
-{
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
@@ -263,6 +258,8 @@ void dac_next(void)
             txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
         }
     }
+
+    return read_count;
 }
 
 void dac_start(void)
