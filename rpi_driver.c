@@ -176,6 +176,8 @@ int main(int argc, char *argv[])
     dac_init();
 
     read_count = buff_next(file_ptr);
+    read_count = buff_next(file_ptr);
+    read_count = buff_next(file_ptr);
     dac_next();
 
     clock_gettime(CLOCK_MONOTONIC, &deadline);
