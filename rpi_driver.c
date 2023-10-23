@@ -164,8 +164,11 @@ void *do_smth_periodically(void *data)
     {    
         usleep(interval);
 
-        read_count = buff_next(stdin);
-        lock_flag = 1;
+        if(!lock_flag)
+        {
+            read_count = buff_next(stdin);
+            lock_flag = 1;
+        }
     }
 }
 
