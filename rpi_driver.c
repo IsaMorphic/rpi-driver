@@ -235,15 +235,7 @@ size_t buff_next(FILE* file_ptr)
     {
         if(feof(file_ptr)) return read_count;
     }
-
-    return read_count;
-}
-
-void dac_start(void)
-{
-    stop_dma(DMA_CHAN_A);
-    smi_cs->clear = 1;
-
+    
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
@@ -256,6 +248,11 @@ void dac_start(void)
         }
     }
 
+    return read_count;
+}
+
+void dac_start(void)
+{
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
 }
