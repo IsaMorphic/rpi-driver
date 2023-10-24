@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
             while(read_count > 0 && !feof(file_ptr))
             {
                 dac_start();
-                usleep(38135);
+                usleep(38125);
                 read_count = buff_next(file_ptr);
             }
 
