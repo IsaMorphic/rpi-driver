@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
     if(argc == 2) 
     {
         int read_count;
-        FILE* file_ptr = fopen(argv[1]);
+        FILE* file_ptr = fopen(argv[1], "rb");
         if(file_ptr) 
         {
             signal(SIGINT, terminate);
