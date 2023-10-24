@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
             {
                 dac_start();
                 
-                deadline.tv_nsec += 66666667;
+                deadline.tv_nsec += 66733333;
                 if(deadline.tv_nsec >= 1000000000) {
                     deadline.tv_nsec -= 1000000000;
                     deadline.tv_sec++;
