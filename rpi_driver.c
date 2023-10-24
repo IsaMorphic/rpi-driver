@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
                     deadline.tv_sec++;
                 }
 
-                //read_count = buff_next(file_ptr);
+                read_count = buff_next(file_ptr);
                 clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             }
 
