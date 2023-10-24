@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
-#include <pthread.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
@@ -38,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        795
+#define NSAMPLES        429
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -138,14 +137,11 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  2       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
-pthread_t thread;
-int lock_flag;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
 
 void dac_init(void);
 void dac_start(void);
-void dac_next(void);
 
 void map_devices(void);
 void fail(char *s);
@@ -154,60 +150,39 @@ void init_smi(int width, int ns, int setup, int hold, int strobe);
 void disp_smi(void);
 void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
-void *do_smth_periodically(void *data)
-{
-    int read_count;
-    int interval = *(int *)data;
-
-    read_count = buff_next(stdin);
-    while(read_count > 0 && !feof(stdin)) 
-    {    
-        usleep(interval);
-
-        read_count = buff_next(stdin);
-        lock_flag = 1;
-    }
-}
-
-
 int main(int argc, char *argv[])
 {
-    int frame_num;
-    struct timespec deadline;
-    
-    pthread_t ptid; 
-
-    signal(SIGINT, terminate);
-
-    map_devices();
-    init_smi(0, 6, 5, 10, 5);
-
-    gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
-    gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
-
-    smi_cs->clear = 1;
-
-    dac_init();
-
-    int interval = 1000000;
-    pthread_create(&thread, NULL, do_smth_periodically, &interval);
-
-    for(;;)
+    if(argc == 2) 
     {
-        if(lock_flag)
+        int read_count;
+        FILE* file_ptr = fopen(argv[1]);
+        if(file_ptr) 
         {
-            dac_next();
-            lock_flag = 0;
-        }
-        else
-        {
-            dac_start();
-            usleep(33366);
+            signal(SIGINT, terminate);
+
+            map_devices();
+            init_smi(0, 6, 12, 25, 12);
+
+            gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
+            gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
+
+            smi_cs->clear = 1;
+
+            dac_init();
+
+            read_count = buff_next(file_ptr);
+            while(read_count > 0 && !feof(file_ptr))
+            {
+                dac_start();
+                usleep(30000);
+                read_count = buff_next(file_ptr);
+            }
+
+            terminate(0);
         }
     }
 
-    terminate(0);
-    return(0);
+    return -1;
 }
 
 void dac_init(void)
@@ -253,11 +228,6 @@ size_t buff_next(FILE* file_ptr)
         if(feof(file_ptr)) return read_count;
     }
 
-    return read_count;
-}
-
-void dac_next(void) 
-{
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
@@ -269,6 +239,8 @@ void dac_next(void)
             txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
         }
     }
+
+    return read_count;
 }
 
 void dac_start(void)
@@ -292,7 +264,7 @@ void map_devices(void)
 void fail(char *s)
 {
     printf(s);
-    terminate(0);
+    terminate(-1);
 }
 
 // Free memory segments and exit
@@ -301,8 +273,6 @@ void terminate(int sig)
     int i;
 
     printf("Closing\n");
-    pthread_cancel(thread);
-    
     disp_reg_fields(smi_cs_regstrs, "CS", *REG32(smi_regs, SMI_CS));
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_IN);
@@ -314,8 +284,7 @@ void terminate(int sig)
     unmap_periph_mem(&smi_regs);
     unmap_periph_mem(&dma_regs);
     unmap_periph_mem(&gpio_regs);
-
-    exit(0);
+    exit(sig);
 }
 
 // Initialise SMI, given data width, time step, and setup/hold/strobe counts
