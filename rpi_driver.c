@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        429
+#define NSAMPLES        12870
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -174,8 +174,8 @@ int main(int argc, char *argv[])
             while(read_count > 0 && !feof(file_ptr))
             {
                 dac_start();
-                usleep(22500);
-                read_count = buff_next(file_ptr);
+                usleep(1000000);
+                //read_count = buff_next(file_ptr);
             }
 
             terminate(0);
