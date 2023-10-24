@@ -170,6 +170,7 @@ int main(int argc, char *argv[])
 
             dac_init();
             read_count = buff_next(file_ptr);
+            read_count = buff_next(file_ptr);
 
             //clock_gettime(CLOCK_MONOTONIC, &deadline);
             while(read_count > 0 && !feof(file_ptr))
