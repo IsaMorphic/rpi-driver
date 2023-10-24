@@ -155,7 +155,6 @@ int main(int argc, char *argv[])
     if(argc == 2) 
     {
         int read_count;
-        struct timespec deadline;
         FILE* file_ptr = fopen(argv[1], "rb");
         if(file_ptr) 
         {
@@ -171,19 +170,11 @@ int main(int argc, char *argv[])
             dac_init();
             read_count = buff_next(file_ptr);
 
-            clock_gettime(CLOCK_MONOTONIC, &deadline);
             while(read_count > 0 && !feof(file_ptr))
             {
                 dac_start();
-                
-                deadline.tv_nsec += 66666667;
-                if(deadline.tv_nsec >= 1000000000) {
-                    deadline.tv_nsec -= 1000000000;
-                    deadline.tv_sec++;
-                }
-
+                usleep(55000);
                 read_count = buff_next(file_ptr);
-                clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             }
 
             terminate(0);
@@ -235,7 +226,15 @@ size_t buff_next(FILE* file_ptr)
     {
         if(feof(file_ptr)) return read_count;
     }
-    
+
+    return read_count;
+}
+
+void dac_start(void)
+{
+    stop_dma(DMA_CHAN_A);
+    smi_cs->clear = 1;
+
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
@@ -248,11 +247,6 @@ size_t buff_next(FILE* file_ptr)
         }
     }
 
-    return read_count;
-}
-
-void dac_start(void)
-{
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
 }
