@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
             {
                 dac_start();
                 read_count = buff_next(file_ptr);
-                usleep(21050);
+                usleep(21250);
             }
 
             terminate(0);
@@ -234,7 +234,7 @@ void dac_start(void)
 {
     stop_dma(DMA_CHAN_A);
     smi_cs->clear = 1;
-    
+
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
