@@ -171,19 +171,13 @@ int main(int argc, char *argv[])
             dac_init();
             read_count = buff_next(file_ptr);
 
-            clock_gettime(CLOCK_MONOTONIC, &deadline);
+            //clock_gettime(CLOCK_MONOTONIC, &deadline);
             while(read_count > 0 && !feof(file_ptr))
             {
                 dac_start();
-                
-                deadline.tv_nsec += 66733333;
-                if(deadline.tv_nsec >= 1000000000) {
-                    deadline.tv_nsec -= 1000000000;
-                    deadline.tv_sec++;
-                }
 
                 //read_count = buff_next(file_ptr);
-                clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
+                usleep(66733);
             }
 
             terminate(0);
