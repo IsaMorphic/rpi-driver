@@ -37,7 +37,7 @@
 #define DAC_D0_PIN      8
 #define DAC_NPINS       8
 
-#define NSAMPLES        429
+#define NSAMPLES        858
 #define NBUFFERS        525
 
 #define SMI_BASE    (PHYS_REG_BASE + 0x600000)
@@ -155,6 +155,7 @@ int main(int argc, char *argv[])
     if(argc == 2) 
     {
         int read_count;
+        struct timespec deadline;
         FILE* file_ptr = fopen(argv[1], "rb");
         if(file_ptr) 
         {
@@ -172,9 +173,16 @@ int main(int argc, char *argv[])
             read_count = buff_next(file_ptr);
             while(read_count > 0 && !feof(file_ptr))
             {
-                dac_start();
+                dac_start(&deadline);
+                
+                deadline.tv_nsec += 66666667;
+                if(deadline.tv_nsec >= 1000000000) {
+                    deadline.tv_nsec -= 1000000000;
+                    deadline.tv_sec++;
+                }
+
                 read_count = buff_next(file_ptr);
-                usleep(21750);
+                clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
             }
 
             terminate(0);
@@ -230,7 +238,7 @@ size_t buff_next(FILE* file_ptr)
     return read_count;
 }
 
-void dac_start(void)
+void dac_start(struct timespec* start_time)
 {
     stop_dma(DMA_CHAN_A);
     smi_cs->clear = 1;
@@ -246,6 +254,8 @@ void dac_start(void)
             txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
         }
     }
+
+    clock_gettime(CLOCK_MONOTONIC, start_time);
 
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
