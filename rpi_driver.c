@@ -141,7 +141,7 @@ uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
 
 void dac_init(void);
-void dac_start(void);
+void dac_start(struct timespec *start_time);
 
 void map_devices(void);
 void fail(char *s);
