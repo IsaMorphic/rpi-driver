@@ -232,7 +232,9 @@ size_t buff_next(FILE* file_ptr)
 
 void dac_start(void)
 {
+    stop_dma(DMA_CHAN_A);
     smi_cs->clear = 1;
+    
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
