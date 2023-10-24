@@ -141,7 +141,7 @@ uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
 
 void dac_init(void);
-void dac_start(struct timespec *start_time);
+void dac_start(void);
 
 void map_devices(void);
 void fail(char *s);
@@ -169,11 +169,12 @@ int main(int argc, char *argv[])
             smi_cs->clear = 1;
 
             dac_init();
-
             read_count = buff_next(file_ptr);
+
+            clock_gettime(CLOCK_MONOTONIC, &deadline);
             while(read_count > 0 && !feof(file_ptr))
             {
-                dac_start(&deadline);
+                dac_start();
                 
                 deadline.tv_nsec += 66666667;
                 if(deadline.tv_nsec >= 1000000000) {
@@ -238,7 +239,7 @@ size_t buff_next(FILE* file_ptr)
     return read_count;
 }
 
-void dac_start(struct timespec* start_time)
+void dac_start(void)
 {
     stop_dma(DMA_CHAN_A);
     smi_cs->clear = 1;
@@ -254,8 +255,6 @@ void dac_start(struct timespec* start_time)
             txdata[j] = (uint16_t)sample_buff[i * NSAMPLES + j];
         }
     }
-
-    clock_gettime(CLOCK_MONOTONIC, start_time);
 
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
