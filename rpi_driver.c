@@ -165,7 +165,6 @@ int main(int argc, char *argv[])
 
             gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
             gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
-
             smi_cs->clear = 1;
 
             dac_init();
@@ -174,8 +173,8 @@ int main(int argc, char *argv[])
             while(read_count > 0 && !feof(file_ptr))
             {
                 dac_start();
-                usleep(21050);
                 read_count = buff_next(file_ptr);
+                usleep(21050);
             }
 
             terminate(0);
@@ -228,6 +227,12 @@ size_t buff_next(FILE* file_ptr)
         if(feof(file_ptr)) return read_count;
     }
 
+    return read_count;
+}
+
+void dac_start(void)
+{
+    smi_cs->clear = 1;
     for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
@@ -240,11 +245,6 @@ size_t buff_next(FILE* file_ptr)
         }
     }
 
-    return read_count;
-}
-
-void dac_start(void)
-{
     start_dma(&vc_mem[0], DMA_CHAN_A, (DMA_CB*)(&vc_mem[0])->virt, 0);
     smi_cs->start = 1;
 }
