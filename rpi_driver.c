@@ -140,6 +140,7 @@ volatile SMI_DCD_REG *smi_dcd;
 
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
+int read_count;
 
 int init_timer(void);
 void timer_handler(int sig);
@@ -166,11 +167,10 @@ int main(int argc, char *argv[])
     smi_cs->clear = 1;
 
     dac_init();
-    if(buff_next(stdin) > 0) 
-    {
-        init_timer();
-        for(;;) { sleep(150); }
-    }
+    read_count = buff_next(stdin);
+
+    init_timer();
+    for(;;) { sleep(150); }
 
     return -1;
 }
@@ -197,9 +197,10 @@ int init_timer(void)
 
 void timer_handler(int sig)
 {
-    if(buff_next(stdin) > 0)
+    if(read_count > 0)
     {
         dac_start();
+        read_count = buff_next(stdin);
     }
     else 
     {
