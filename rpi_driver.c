@@ -195,7 +195,7 @@ int init_timer(void)
     setitimer(ITIMER_REAL, &timer, NULL);//ITIMER_REAL
 }
 
-void timer_handler(void)
+void timer_handler(int sig)
 {
     if(buff_next(stdin) > 0)
     {
