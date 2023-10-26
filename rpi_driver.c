@@ -155,27 +155,20 @@ void disp_reg_fields(char *regstrs, char *name, uint32_t val);
 
 int main(int argc, char *argv[])
 {
-    if(argc == 2) 
+    signal(SIGINT, terminate);
+
+    map_devices();
+    init_smi(0, 6, 12, 15, 12);
+
+    gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
+    gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
+    smi_cs->clear = 1;
+
+    dac_init();
+    if(buff_next(stdin) > 0) 
     {
-        int read_count;
-        FILE* file_ptr = fopen(argv[1], "rb");
-        if(file_ptr) 
-        {
-            signal(SIGINT, terminate);
-
-            map_devices();
-            init_smi(0, 6, 12, 15, 12);
-
-            gpio_mode(SMI_SOE_PIN, GPIO_ALT1);
-            gpio_mode(SMI_SWE_PIN, GPIO_ALT1);
-            smi_cs->clear = 1;
-
-            dac_init();
-            read_count = buff_next(file_ptr);
-
-            init_timer();
-            for(;;) { sleep(150); }
-        }
+        init_timer();
+        for(;;) { sleep(150); }
     }
 
     return -1;
@@ -203,7 +196,7 @@ int init_timer(void)
 
 void timer_handler(void)
 {
-    if(buff_next(file_ptr) > 0)
+    if(buff_next(stdin) > 0)
     {
         dac_start();
     }
