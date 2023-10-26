@@ -122,7 +122,7 @@ char *smi_cs_regstrs = STRS(SMI_CS_FIELDS);
 extern MEM_MAP gpio_regs, dma_regs;
 MEM_MAP clk_regs, smi_regs;
 
-MEM_MAP vc_mem[NBUFFERS * 2];
+MEM_MAP vc_mem[NBUFFERS];
 
 volatile SMI_CS_REG  *smi_cs;
 volatile SMI_L_REG   *smi_l;
@@ -138,9 +138,9 @@ volatile SMI_DCD_REG *smi_dcd;
 #define TX_SAMPLE_SIZE  4       // Number of raw bytes per sample
 #define VC_MEM_SIZE(ns) (PAGE_SIZE + ((ns)+4)*TX_SAMPLE_SIZE)
 
+int read_count;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
-int read_count;
 
 int init_timer(void);
 void timer_handler(int sig);
@@ -218,7 +218,7 @@ void dac_init(void)
     for(i = 0; i < DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN + i, GPIO_ALT1);
 
-    for(i = 0; i < NBUFFERS * 2; i++)
+    for(i = 0; i < NBUFFERS; i++)
         map_uncached_mem(&vc_mem[i], VC_MEM_SIZE(NSAMPLES));
 
     smi_dsr->rwidth = SMI_8_BITS;
@@ -229,7 +229,7 @@ void dac_init(void)
     smi_cs->enable = 1;
 
     enable_dma(DMA_CHAN_A);
-    for(int i = 0; i < NBUFFERS * 2; i++)
+    for(int i = 0; i < NBUFFERS; i++)
     {
         MEM_MAP *mp = &vc_mem[i];
         DMA_CB *cbs = mp->virt;
@@ -239,7 +239,8 @@ void dac_init(void)
         cbs[0].tfr_len = NSAMPLES * TX_SAMPLE_SIZE;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == NBUFFERS - 1 ? (uint32_t)NULL : MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
+        cbs[0].next_cb = i == NBUFFERS - 1 ? (uint32_t)NULL : 
+            MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
 }
 
