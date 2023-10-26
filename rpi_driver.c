@@ -142,7 +142,8 @@ int read_count;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
 
-int init_timer(void);
+struct itimerval driver_timer;
+struct itimerval init_timer(void);
 void timer_handler(int sig);
 
 void dac_init(void);
@@ -169,13 +170,13 @@ int main(int argc, char *argv[])
     dac_init();
     read_count = buff_next(stdin);
 
-    init_timer();
+    driver_timer = init_timer();
     for(;;) { sleep(150); }
 
     return -1;
 }
 
-int init_timer(void)
+struct itimerval init_timer(void)
 {
     struct sigaction sa;
     struct itimerval timer;
@@ -184,7 +185,7 @@ int init_timer(void)
     sa.sa_handler = &timer_handler;
     sigaction(SIGALRM,&sa,NULL);//SIGVTALRM
 
-    //configure timer to expire after 1 mS
+    //configure timer to expire after 2 frames of NTSC video
     getitimer(ITIMER_REAL, &timer);
     timer.it_value.tv_sec = 0;
     timer.it_value.tv_usec = 66733;
@@ -193,6 +194,8 @@ int init_timer(void)
     timer.it_interval.tv_usec= 66733;
 
     setitimer(ITIMER_REAL, &timer, NULL);//ITIMER_REAL
+
+    return timer;
 }
 
 void timer_handler(int sig)
@@ -298,8 +301,15 @@ void fail(char *s)
 void terminate(int sig)
 {
     int i;
-
     printf("Closing\n");
+
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 0;
+
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec= 0;
+    setitimer(ITIMER_REAL, &driver_timer, NULL); //ITIMER_REAL
+
     disp_reg_fields(smi_cs_regstrs, "CS", *REG32(smi_regs, SMI_CS));
     for (i=0; i<DAC_NPINS; i++)
         gpio_mode(DAC_D0_PIN+i, GPIO_IN);
