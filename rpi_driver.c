@@ -303,11 +303,11 @@ void terminate(int sig)
     int i;
     printf("Closing\n");
 
-    timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 0;
+    driver_timer.it_value.tv_sec = 0;
+    driver_timer.it_value.tv_usec = 0;
 
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec= 0;
+    driver_timer.it_interval.tv_sec = 0;
+    driver_timer.it_interval.tv_usec= 0;
     setitimer(ITIMER_REAL, &driver_timer, NULL); //ITIMER_REAL
 
     disp_reg_fields(smi_cs_regstrs, "CS", *REG32(smi_regs, SMI_CS));
