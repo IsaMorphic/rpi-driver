@@ -240,7 +240,7 @@ void dac_init(void)
         cbs[0].tfr_len = NSAMPLES * TX_SAMPLE_SIZE;
         cbs[0].srce_ad = MEM_BUS_ADDR(mp, txdata);
         cbs[0].dest_ad = REG_BUS_ADDR(smi_regs, SMI_D);
-        cbs[0].next_cb = i == NBUFFERS - 1 ? NULL : 
+        cbs[0].next_cb = i == NBUFFERS * 2 - 1 ? (uint32_t*)NULL : 
             MEM_BUS_ADDR((&vc_mem[i + 1]), (&vc_mem[i + 1])->virt);
     }
 }
