@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <sys/time.h>
 #include "rpi_dma_utils.h"
 
 #define DISP_ZEROS      0
