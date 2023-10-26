@@ -140,6 +140,9 @@ volatile SMI_DCD_REG *smi_dcd;
 uint8_t sample_buff[NSAMPLES * NBUFFERS];
 size_t buff_next(FILE *file_ptr);
 
+int init_timer(void);
+void timer_handler(int sig);
+
 void dac_init(void);
 void dac_start(void);
 
@@ -170,18 +173,44 @@ int main(int argc, char *argv[])
             dac_init();
             read_count = buff_next(file_ptr);
 
-            while(read_count > 0 && !feof(file_ptr))
-            {
-                dac_start();
-                usleep(37300);
-                read_count = buff_next(file_ptr);
-            }
-
-            terminate(0);
+            init_timer();
+            for(;;) { sleep(150); }
         }
     }
 
     return -1;
+}
+
+int init_timer(void)
+{
+    struct sigaction sa;
+    struct itimerval timer;
+
+    memset(&sa,0,sizeof(sa));
+    sa.sa_handler = &timer_handler;
+    sigaction(SIGALRM,&sa,NULL);//SIGVTALRM
+
+    //configure timer to expire after 1 mS
+    getitimer(ITIMER_REAL, &timer);
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 66733;
+
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec= 66733;
+
+    setitimer(ITIMER_REAL, &timer, NULL);//ITIMER_REAL
+}
+
+void timer_handler(void)
+{
+    if(buff_next(file_ptr) > 0)
+    {
+        dac_start();
+    }
+    else 
+    {
+        terminate(0);
+    }
 }
 
 void dac_init(void)
